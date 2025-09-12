@@ -786,7 +786,21 @@
     </div>
 
     <script>
-        // Initialize the application
+         // 1) ใส่ค่าจาก Supabase Dashboard → Project Settings → API
+    const SUPABASE_URL = "https://ftapghebfvfxbtqojkfp.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0YXBnaGViZnZmeGJ0cW9qa2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NDI2OTQsImV4cCI6MjA3MzIxODY5NH0.OEbaUGNAfC1HvWOQM9nptpPJuxB_vzi8GV7aFAd-L10";
+
+    // 2) สร้าง client
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 3) ตัวอย่างทดสอบ: อ่านตาราง public.hello (ถ้ามี)
+    (async () => {
+      const { data, error } = await client.from("attendance_days").select("*").limit(5);
+      if (error) console.error(error);
+      else console.log("attendance_days sample:", data);
+    })();
+		
+		// Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
             setupEventListeners();
