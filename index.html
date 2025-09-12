@@ -10,17 +10,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-  <!-- ✅ Supabase client (ต้องโหลดก่อนสคริปต์ของเรา) -->
+  <!-- Supabase client (ต้องโหลดก่อนสคริปต์ของเรา) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Fonts & base styles -->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Sarabun', sans-serif; }
     .sidebar-transition { transition: all 0.3s ease; }
     .card-hover { transition: all 0.2s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-    /* ✅ แทนที่ @apply ด้วย CSS ปกติให้ใช้ได้บน CDN */
     .status-badge { display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-size:0.75rem; font-weight:500; }
     .status-present { background:#dcfce7; color:#166534; }
     .status-late { background:#fef9c3; color:#854d0e; }
@@ -31,25 +29,19 @@
   </style>
 </head>
 <body class="bg-gray-50">
-  <!-- Navigation Header -->
+  <!-- Topbar -->
   <nav class="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-50">
     <div class="px-6 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
-          <button id="sidebarToggle" class="text-gray-600 hover:text-gray-900">
-            <i class="fas fa-bars text-xl"></i>
-          </button>
+          <button id="sidebarToggle" class="text-gray-600 hover:text-gray-900"><i class="fas fa-bars text-xl"></i></button>
           <h1 class="text-xl font-semibold text-gray-900">ระบบจัดการเวลาเข้างานและการลา</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <div class="text-sm text-gray-600">
-            <i class="fas fa-calendar-alt mr-2"></i>
-            <span id="currentDate"></span>
-          </div>
+          <div class="text-sm text-gray-600"><i class="fas fa-calendar-alt mr-2"></i><span id="currentDate"></span></div>
           <div class="flex items-center space-x-2">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234F46E5'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-size='12' font-weight='bold'%3EHR%3C/text%3E%3C/svg%3E" alt="User" class="w-8 h-8 rounded-full">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234F46E5'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-size='12' font-weight='bold'%3EHR%3C/text%3E%3C/svg%3E" class="w-8 h-8 rounded-full" alt="User">
             <span class="text-sm font-medium text-gray-700">HR Admin</span>
-            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
           </div>
         </div>
       </div>
@@ -60,176 +52,55 @@
   <aside id="sidebar" class="fixed left-0 top-16 h-full w-64 bg-white shadow-lg border-r border-gray-200 sidebar-transition z-40">
     <div class="p-6">
       <nav class="space-y-2">
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 bg-blue-50 text-blue-700" data-section="dashboard">
-          <i class="fas fa-chart-pie mr-3 text-lg"></i>
-          <span>แดชบอร์ด</span>
-        </a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="import">
-          <i class="fas fa-upload mr-3 text-lg"></i>
-          <span>นำเข้าข้อมูล</span>
-        </a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="attendance">
-          <i class="fas fa-clock mr-3 text-lg"></i>
-          <span>ตรวจสอบเวลาเข้างาน</span>
-        </a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="leave">
-          <i class="fas fa-calendar-times mr-3 text-lg"></i>
-          <span>จัดการการลา</span>
-        </a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="corrections">
-          <i class="fas fa-edit mr-3 text-lg"></i>
-          <span>คำขอแก้ไข</span>
-        </a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="reports">
-          <i class="fas fa-file-alt mr-3 text-lg"></i>
-          <span>รายงาน</span>
-        </a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="settings">
-          <i class="fas fa-cog mr-3 text-lg"></i>
-          <span>ตั้งค่าระบบ</span>
-        </a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 bg-blue-50 text-blue-700" data-section="dashboard"><i class="fas fa-chart-pie mr-3 text-lg"></i><span>แดชบอร์ด</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="import"><i class="fas fa-upload mr-3 text-lg"></i><span>นำเข้าข้อมูล</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="attendance"><i class="fas fa-clock mr-3 text-lg"></i><span>ตรวจสอบเวลาเข้างาน</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="leave"><i class="fas fa-calendar-times mr-3 text-lg"></i><span>จัดการการลา</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="corrections"><i class="fas fa-edit mr-3 text-lg"></i><span>คำขอแก้ไข</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="reports"><i class="fas fa-file-alt mr-3 text-lg"></i><span>รายงาน</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="settings"><i class="fas fa-cog mr-3 text-lg"></i><span>ตั้งค่าระบบ</span></a>
       </nav>
     </div>
   </aside>
 
-  <!-- Main Content -->
+  <!-- Main -->
   <main id="mainContent" class="ml-64 pt-16 min-h-screen sidebar-transition">
 
-    <!-- Dashboard Section -->
-    <div id="dashboard-section" class="section-content p-6">
+    <!-- Dashboard -->
+    <section id="dashboard-section" class="section-content p-6">
       <div class="mb-6">
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">แดชบอร์ดภาพรวม</h2>
         <p class="text-gray-600">สรุปข้อมูลเวลาเข้างานและการลาประจำวัน</p>
       </div>
-
-      <!-- KPI Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">อัตราการสแกนสำเร็จ</p>
-              <p class="text-3xl font-bold text-green-600">94.2%</p>
-              <p class="text-xs text-green-600 mt-1">
-                <i class="fas fa-arrow-up mr-1"></i>+2.1% จากเมื่อวาน
-              </p>
-            </div>
-            <div class="bg-green-100 p-3 rounded-full">
-              <i class="fas fa-check-circle text-green-600 text-xl"></i>
-            </div>
-          </div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">อัตราการสแกนสำเร็จ</p><p class="text-3xl font-bold text-green-600">94.2%</p><p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up mr-1"></i>+2.1% จากเมื่อวาน</p></div><div class="bg-green-100 p-3 rounded-full"><i class="fas fa-check-circle text-green-600 text-xl"></i></div></div>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">มาสาย</p>
-              <p class="text-3xl font-bold text-yellow-600">23 คน</p>
-              <p class="text-xs text-red-600 mt-1">
-                <i class="fas fa-arrow-up mr-1"></i>+5 คน จากเมื่อวาน
-              </p>
-            </div>
-            <div class="bg-yellow-100 p-3 rounded-full">
-              <i class="fas fa-clock text-yellow-600 text-xl"></i>
-            </div>
-          </div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">มาสาย</p><p class="text-3xl font-bold text-yellow-600">23 คน</p><p class="text-xs text-red-600 mt-1"><i class="fas fa-arrow-up mr-1"></i>+5 คน จากเมื่อวาน</p></div><div class="bg-yellow-100 p-3 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div></div>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">ขาดงาน</p>
-              <p class="text-3xl font-bold text-red-600">7 คน</p>
-              <p class="text-xs text-green-600 mt-1">
-                <i class="fas fa-arrow-down mr-1"></i>-2 คน จากเมื่อวาน
-              </p>
-            </div>
-            <div class="bg-red-100 p-3 rounded-full">
-              <i class="fas fa-user-times text-red-600 text-xl"></i>
-            </div>
-          </div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">ขาดงาน</p><p class="text-3xl font-bold text-red-600">7 คน</p><p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-down mr-1"></i>-2 คน จากเมื่อวาน</p></div><div class="bg-red-100 p-3 rounded-full"><i class="fas fa-user-times text-red-600 text-xl"></i></div></div>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">คำขอรออนุมัติ</p>
-              <p class="text-3xl font-bold text-orange-600">12</p>
-              <p class="text-xs text-gray-600 mt-1">8 แก้ไข, 4 ลา</p>
-            </div>
-            <div class="bg-orange-100 p-3 rounded-full">
-              <i class="fas fa-hourglass-half text-orange-600 text-xl"></i>
-            </div>
-          </div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">คำขอรออนุมัติ</p><p class="text-3xl font-bold text-orange-600">12</p><p class="text-xs text-gray-600 mt-1">8 แก้ไข, 4 ลา</p></div><div class="bg-orange-100 p-3 rounded-full"><i class="fas fa-hourglass-half text-orange-600 text-xl"></i></div></div>
         </div>
       </div>
+    </section>
 
-      <!-- Recent Activities -->
-      <div class="bg-white rounded-xl shadow-sm p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">กิจกรรมล่าสุด</h3>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div class="flex items-center space-x-3">
-              <div class="bg-blue-100 p-2 rounded-full">
-                <i class="fas fa-upload text-blue-600"></i>
-              </div>
-              <div>
-                <p class="font-medium text-gray-900">นำเข้าข้อมูลเวลาเข้างาน</p>
-                <p class="text-sm text-gray-600">ไฟล์ attendance_20241201.csv - 1,247 รายการ</p>
-              </div>
-            </div>
-            <span class="text-sm text-gray-500">5 นาทีที่แล้ว</span>
-          </div>
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div class="flex items-center space-x-3">
-              <div class="bg-green-100 p-2 rounded-full">
-                <i class="fas fa-check text-green-600"></i>
-              </div>
-              <div>
-                <p class="font-medium text-gray-900">อนุมัติคำขอแก้ไขเวลา</p>
-                <p class="text-sm text-gray-600">สมชาย ใจดี - แผนกผลิต (ลืมสแกนออก)</p>
-              </div>
-            </div>
-            <span class="text-sm text-gray-500">15 นาทีที่แล้ว</span>
-          </div>
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div class="flex items-center space-x-3">
-              <div class="bg-yellow-100 p-2 rounded-full">
-                <i class="fas fa-calendar text-yellow-600"></i>
-              </div>
-              <div>
-                <p class="font-medium text-gray-900">คำขอลาใหม่</p>
-                <p class="text-sm text-gray-600">สุดา รักงาน - ลาป่วย 2 วัน</p>
-              </div>
-            </div>
-            <span class="text-sm text-gray-500">1 ชั่วโมงที่แล้ว</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Import Section -->
-    <div id="import-section" class="section-content p-6 hidden">
-      <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
-        <p class="text-gray-600">อัปโหลดไฟล์ CSV หรือ XLSX ที่ export จากระบบ iVMS4200-AC</p>
-      </div>
-
-      <!-- Upload Area -->
+    <!-- Import -->
+    <section id="import-section" class="section-content p-6 hidden">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
+      <p class="text-gray-600 mb-6">อัปโหลดไฟล์ CSV หรือ XLSX ที่ export จากระบบ iVMS4200-AC</p>
       <div class="bg-white rounded-xl shadow-sm p-8 mb-6">
         <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors cursor-pointer">
-          <div class="mb-4">
-            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
-          </div>
+          <div class="mb-4"><i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i></div>
           <h3 class="text-lg font-medium text-gray-900 mb-2">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h3>
           <p class="text-gray-600 mb-4">รองรับไฟล์ .csv และ .xlsx ขนาดไม่เกิน 10MB</p>
           <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx">
-          <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            เลือกไฟล์
-          </button>
+          <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">เลือกไฟล์</button>
         </div>
       </div>
-
-      <!-- File Preview -->
       <div id="filePreview" class="bg-white rounded-xl shadow-sm p-6 hidden">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">ตัวอย่างข้อมูล (50 แถวแรก)</h3>
         <div class="overflow-x-auto">
@@ -248,84 +119,40 @@
           </table>
         </div>
         <div class="mt-6 flex justify-between items-center">
-          <div class="text-sm text-gray-600">
-            <span class="font-medium text-green-600">1,247</span> รายการพร้อมนำเข้า, 
-            <span class="font-medium text-red-600">3</span> รายการมีข้อผิดพลาด
-          </div>
+          <div class="text-sm text-gray-600"><span class="font-medium text-green-600">1,247</span> รายการพร้อมนำเข้า, <span class="font-medium text-red-600">3</span> รายการมีข้อผิดพลาด</div>
           <div class="space-x-3">
-            <button class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-              ดาวน์โหลด Error Log
-            </button>
-            <button id="importBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
-              นำเข้าข้อมูล
-            </button>
+            <button class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ดาวน์โหลด Error Log</button>
+            <button id="importBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">นำเข้าข้อมูล</button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Attendance Review Section -->
-    <div id="attendance-section" class="section-content p-6 hidden">
-      <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2>
-        <p class="text-gray-600">ตรวจสอบและอนุมัติสถานะการเข้างานรายวัน</p>
-      </div>
-
-      <!-- Filters -->
+    <!-- Attendance -->
+    <section id="attendance-section" class="section-content p-6 hidden">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2>
+      <p class="text-gray-600 mb-6">ตรวจสอบและอนุมัติสถานะการเข้างานรายวัน</p>
       <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">วันที่</label>
-            <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="2024-12-01">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">แผนก</label>
-            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <option>ทุกแผนก</option>
-              <option>แผนกผลิต</option>
-              <option>แผนกคุณภาพ</option>
-              <option>แผนกบุคคล</option>
-              <option>แผนกบัญชี</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">สถานะ</label>
-            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <option>ทุกสถานะ</option>
-              <option>ปกติ</option>
-              <option>มาสาย</option>
-              <option>ขาดงาน</option>
-              <option>ลืมสแกน</option>
-            </select>
-          </div>
-          <div class="flex items-end">
-            <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              <i class="fas fa-search mr-2"></i>ค้นหา
-            </button>
-          </div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">วันที่</label><input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="2024-12-01"></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">แผนก</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option>ทุกแผนก</option><option>แผนกผลิต</option><option>แผนกคุณภาพ</option><option>แผนกบุคคล</option><option>แผนกบัญชี</option></select></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">สถานะ</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option>ทุกสถานะ</option><option>ปกติ</option><option>มาสาย</option><option>ขาดงาน</option><option>ลืมสแกน</option></select></div>
+          <div class="flex items-end"><button class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><i class="fas fa-search mr-2"></i>ค้นหา</button></div>
         </div>
       </div>
-
-      <!-- Attendance Table -->
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h3 class="text-lg font-semibold text-gray-900">รายการเวลาเข้างาน - วันที่ 1 ธันวาคม 2024</h3>
           <div class="space-x-2">
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-              <i class="fas fa-check mr-2"></i>อนุมัติที่เลือก
-            </button>
-            <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-              <i class="fas fa-times mr-2"></i>ปฏิเสธที่เลือก
-            </button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"><i class="fas fa-check mr-2"></i>อนุมัติที่เลือก</button>
+            <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"><i class="fas fa-times mr-2"></i>ปฏิเสธที่เลือก</button>
           </div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left">
-                  <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                </th>
+                <th class="px-6 py-3 text-left"><input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">พนักงาน</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลาเข้า</th>
@@ -337,633 +164,369 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr>
-                <td class="px-6 py-4">
-                  <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center">
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <span class="text-blue-600 font-medium text-sm">สจ</span>
-                    </div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">สมชาย ใจดี</div>
-                      <div class="text-sm text-gray-500">EMP001</div>
-                    </div>
-                  </div>
-                </td>
+                <td class="px-6 py-4"><input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
+                <td class="px-6 py-4"><div class="flex items-center"><div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3"><span class="text-blue-600 font-medium text-sm">สจ</span></div><div><div class="text-sm font-medium text-gray-900">สมชาย ใจดี</div><div class="text-sm text-gray-500">EMP001</div></div></div></td>
                 <td class="px-6 py-4 text-sm text-gray-900">แผนกผลิต</td>
                 <td class="px-6 py-4 text-sm text-gray-900">08:00</td>
                 <td class="px-6 py-4 text-sm text-red-600">-</td>
-                <td class="px-6 py-4">
-                  <span class="status-badge status-pending">ลืมสแกนออก</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="status-badge status-pending">รออนุมัติ</span>
-                </td>
-                <td class="px-6 py-4">
-                  <button class="text-blue-600 hover:text-blue-800 mr-3" onclick="openCorrectionModal('EMP001')">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-green-600 hover:text-green-800 mr-3">
-                    <i class="fas fa-check"></i>
-                  </button>
-                  <button class="text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4">
-                  <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center">
-                    <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center mr-3">
-                      <span class="text-pink-600 font-medium text-sm">สร</span>
-                    </div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">สุดา รักงาน</div>
-                      <div class="text-sm text-gray-500">EMP002</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-900">แผนกคุณภาพ</td>
-                <td class="px-6 py-4 text-sm text-yellow-600">08:15</td>
-                <td class="px-6 py-4 text-sm text-gray-900">17:30</td>
-                <td class="px-6 py-4">
-                  <span class="status-badge status-late">มาสาย</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">-</span>
-                </td>
-                <td class="px-6 py-4">
-                  <button class="text-blue-600 hover:text-blue-800 mr-3">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4">
-                  <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center">
-                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <span class="text-green-600 font-medium text-sm">ปร</span>
-                    </div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">ประยุทธ ขยันทำงาน</div>
-                      <div class="text-sm text-gray-500">EMP003</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-900">แผนกผลิต</td>
-                <td class="px-6 py-4 text-sm text-gray-900">07:55</td>
-                <td class="px-6 py-4 text-sm text-gray-900">17:25</td>
-                <td class="px-6 py-4">
-                  <span class="status-badge status-present">ปกติ</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">-</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">-</span>
-                </td>
+                <td class="px-6 py-4"><span class="status-badge status-pending">ลืมสแกนออก</span></td>
+                <td class="px-6 py-4"><span class="status-badge status-pending">รออนุมัติ</span></td>
+                <td class="px-6 py-4"><button class="text-blue-600 hover:text-blue-800 mr-3" onclick="openCorrectionModal('EMP001')"><i class="fas fa-edit"></i></button><button class="text-green-600 hover:text-green-800 mr-3"><i class="fas fa-check"></i></button><button class="text-red-600 hover:text-red-800"><i class="fas fa-times"></i></button></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Leave Management Section -->
-    <div id="leave-section" class="section-content p-6 hidden">
-      <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2>
-        <p class="text-gray-600">อนุมัติและจัดการคำขอลาของพนักงาน</p>
-      </div>
-
-      <!-- Leave Requests -->
+    <!-- Leave -->
+    <section id="leave-section" class="section-content p-6 hidden">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2>
+      <p class="text-gray-600 mb-6">อนุมัติและจัดการคำขอลาของพนักงาน</p>
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h3 class="text-lg font-semibold text-gray-900">คำขอลาที่รออนุมัติ</h3>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" onclick="openLeaveModal()">
-            <i class="fas fa-plus mr-2"></i>เพิ่มคำขอลา
-          </button>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="openLeaveModal()"><i class="fas fa-plus mr-2"></i>เพิ่มคำขอลา</button>
         </div>
-        <div class="divide-y divide-gray-200">
-          <div class="p-6">
-            <div class="flex items-start justify-between">
-              <div class="flex items-start space-x-4">
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span class="text-blue-600 font-medium">สร</span>
-                </div>
-                <div>
-                  <h4 class="text-lg font-medium text-gray-900">สุดา รักงาน</h4>
-                  <p class="text-sm text-gray-600">แผนกคุณภาพ • EMP002</p>
-                  <div class="mt-2">
-                    <span class="status-badge status-leave">ลาป่วย</span>
-                    <span class="text-sm text-gray-600 ml-2">2-3 ธันวาคม 2024 (2 วัน)</span>
-                  </div>
-                  <p class="text-sm text-gray-700 mt-2">เหตุผล: ป่วยเป็นไข้หวัดใหญ่ มีใบรับรองแพทย์</p>
-                </div>
-              </div>
-              <div class="flex space-x-2">
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                  <i class="fas fa-check mr-1"></i>อนุมัติ
-                </button>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-                  <i class="fas fa-times mr-1"></i>ปฏิเสธ
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="p-6">
-            <div class="flex items-start justify-between">
-              <div class="flex items-start space-x-4">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <span class="text-green-600 font-medium">มน</span>
-                </div>
-                <div>
-                  <h4 class="text-lg font-medium text-gray-900">มานะ ทำงานหนัก</h4>
-                  <p class="text-sm text-gray-600">แผนกผลิต • EMP004</p>
-                  <div class="mt-2">
-                    <span class="status-badge status-leave">ลาพักร้อน</span>
-                    <span class="text-sm text-gray-600 ml-2">5-7 ธันวาคม 2024 (3 วัน)</span>
-                  </div>
-                  <p class="text-sm text-gray-700 mt-2">เหตุผล: เดินทางท่องเที่ยวกับครอบครัว</p>
-                </div>
-              </div>
-              <div class="flex space-x-2">
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                  <i class="fas fa-check mr-1"></i>อนุมัติ
-                </button>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-                  <i class="fas fa-times mr-1"></i>ปฏิเสธ
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="p-6 text-gray-600">ตัวอย่างข้อมูลคำขอลา…</div>
       </div>
-    </div>
+    </section>
 
-    <!-- Corrections Section -->
-    <div id="corrections-section" class="section-content p-6 hidden">
-      <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไขเวลา</h2>
-        <p class="text-gray-600">จัดการคำขอแก้ไขเวลาเข้า-ออกงาน</p>
-      </div>
-
+    <!-- Corrections -->
+    <section id="corrections-section" class="section-content p-6 hidden">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไขเวลา</h2>
+      <p class="text-gray-600 mb-6">จัดการคำขอแก้ไขเวลาเข้า-ออกงาน</p>
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">คำขอแก้ไขที่รออนุมัติ</h3>
-        </div>
-        <div class="divide-y divide-gray-200">
-          <div class="p-6">
-            <div class="flex items-start justify-between">
-              <div class="flex items-start space-x-4">
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span class="text-blue-600 font-medium">สจ</span>
-                </div>
-                <div>
-                  <h4 class="text-lg font-medium text-gray-900">สมชาย ใจดี</h4>
-                  <p class="text-sm text-gray-600">แผนกผลิต • EMP001 • 1 ธันวาคม 2024</p>
-                  <div class="mt-2 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span class="text-gray-600">เวลาเข้าปัจจุบัน:</span>
-                      <span class="font-medium">08:00</span>
-                    </div>
-                    <div>
-                      <span class="text-gray-600">เวลาออกปัจจุบัน:</span>
-                      <span class="font-medium text-red-600">ไม่มีข้อมูล</span>
-                    </div>
-                    <div>
-                      <span class="text-gray-600">เวลาออกที่เสนอ:</span>
-                      <span class="font-medium text-green-600">17:30</span>
-                    </div>
-                  </div>
-                  <p class="text-sm text-gray-700 mt-2">
-                    <strong>เหตุผล:</strong> ลืมสแกนบัตรออกงาน เนื่องจากรีบไปรับลูกที่โรงเรียน
-                  </p>
-                </div>
-              </div>
-              <div class="flex space-x-2">
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                  <i class="fas fa-check mr-1"></i>อนุมัติ
-                </button>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-                  <i class="fas fa-times mr-1"></i>ปฏิเสธ
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="px-6 py-4 border-b border-gray-200"><h3 class="text-lg font-semibold text-gray-900">คำขอแก้ไขที่รออนุมัติ</h3></div>
+        <div class="p-6 text-gray-600">ตัวอย่างข้อมูลคำขอแก้ไข…</div>
       </div>
-    </div>
+    </section>
 
-    <!-- Reports Section -->
-    <div id="reports-section" class="section-content p-6 hidden">
-      <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">รายงาน</h2>
-        <p class="text-gray-600">สร้างและดาวน์โหลดรายงานต่างๆ</p>
-      </div>
-
+    <!-- Reports -->
+    <section id="reports-section" class="section-content p-6 hidden">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2">รายงาน</h2>
+      <p class="text-gray-600 mb-6">สร้างและดาวน์โหลดรายงานต่างๆ</p>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center mb-4">
-            <div class="bg-blue-100 p-3 rounded-full mr-4">
-              <i class="fas fa-chart-bar text-blue-600 text-xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900">รายงานสรุปรายเดือน</h3>
-          </div>
-          <p class="text-gray-600 mb-4">สรุปข้อมูลการเข้างานและการลาประจำเดือน</p>
-          <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            สร้างรายงาน
-          </button>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center mb-4">
-            <div class="bg-green-100 p-3 rounded-full mr-4">
-              <i class="fas fa-users text-green-600 text-xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900">รายงานรายแผนก</h3>
-          </div>
-          <p class="text-gray-600 mb-4">วิเคราะห์ข้อมูลการเข้างานแยกตามแผนก</p>
-          <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
-            สร้างรายงาน
-          </button>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center mb-4">
-            <div class="bg-purple-100 p-3 rounded-full mr-4">
-              <i class="fas fa-calendar-alt text-purple-600 text-xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900">รายงานการลา</h3>
-          </div>
-          <p class="text-gray-600 mb-4">สรุปข้อมูลการลาทุกประเภท</p>
-          <button class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors">
-            สร้างรายงาน
-          </button>
-        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover"><div class="flex items-center mb-4"><div class="bg-blue-100 p-3 rounded-full mr-4"><i class="fas fa-chart-bar text-blue-600 text-xl"></i></div><h3 class="text-lg font-semibold text-gray-900">รายงานสรุปรายเดือน</h3></div><p class="text-gray-600 mb-4">สรุปข้อมูลการเข้างานและการลาประจำเดือน</p><button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">สร้างรายงาน</button></div>
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover"><div class="flex items-center mb-4"><div class="bg-green-100 p-3 rounded-full mr-4"><i class="fas fa-users text-green-600 text-xl"></i></div><h3 class="text-lg font-semibold text-gray-900">รายงานรายแผนก</h3></div><p class="text-gray-600 mb-4">วิเคราะห์ข้อมูลการเข้างานแยกตามแผนก</p><button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">สร้างรายงาน</button></div>
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover"><div class="flex items-center mb-4"><div class="bg-purple-100 p-3 rounded-full mr-4"><i class="fas fa-calendar-alt text-purple-600 text-xl"></i></div><h3 class="text-lg font-semibold text-gray-900">รายงานการลา</h3></div><p class="text-gray-600 mb-4">สรุปข้อมูลการลาทุกประเภท</p><button class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">สร้างรายงาน</button></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Settings Section -->
-    <div id="settings-section" class="section-content p-6 hidden">
+    <!-- Settings -->
+    <section id="settings-section" class="section-content p-6 hidden">
       <div class="mb-6">
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">ตั้งค่าระบบ</h2>
         <p class="text-gray-600">จัดการข้อมูลพื้นฐานและการตั้งค่าระบบ</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Employee Management -->
+      <!-- HOME: Settings menu -->
+      <div id="settings-home" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">จัดการข้อมูลพนักงาน</h3>
           <div class="space-y-4">
-            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50" data-settings="employee">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900">ข้อมูลพนักงาน</h4>
-                  <p class="text-sm text-gray-600">จัดการรายชื่อและข้อมูลพนักงาน</p>
-                </div>
+                <div><h4 class="font-medium text-gray-900">ข้อมูลพนักงาน</h4><p class="text-sm text-gray-600">จัดการรายชื่อและข้อมูลพนักงาน</p></div>
                 <i class="fas fa-chevron-right text-gray-400"></i>
               </div>
             </button>
-            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50" data-settings="structure">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900">แผนกและตำแหน่ง</h4>
-                  <p class="text-sm text-gray-600">จัดการโครงสร้างองกรและตำแหน่งงาน</p>
-                </div>
+                <div><h4 class="font-medium text-gray-900">แผนกและตำแหน่ง</h4><p class="text-sm text-gray-600">จัดการโครงสร้างองค์กรและตำแหน่งงาน</p></div>
                 <i class="fas fa-chevron-right text-gray-400"></i>
               </div>
             </button>
-            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50" data-settings="shifts">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900">กะการทำงาน</h4>
-                  <p class="text-sm text-gray-600">ตั้งค่าเวลาทำงานและกะต่างๆ</p>
-                </div>
+                <div><h4 class="font-medium text-gray-900">กะการทำงาน</h4><p class="text-sm text-gray-600">ตั้งค่าเวลาทำงานและกะต่างๆ</p></div>
                 <i class="fas fa-chevron-right text-gray-400"></i>
               </div>
             </button>
           </div>
         </div>
 
-        <!-- System Settings -->
         <div class="bg-white rounded-xl shadow-sm p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">ตั้งค่าระบบ</h3>
           <div class="space-y-4">
-            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50" data-settings="holidays">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900">วันหยุดและปฏิทิน</h4>
-                  <p class="text-sm text-gray-600">จัดการวันหยุดนักขัตฤกษ์และวันหยุดพิเศษ</p>
-                </div>
+                <div><h4 class="font-medium text-gray-900">วันหยุดและปฏิทิน</h4><p class="text-sm text-gray-600">จัดการวันหยุดนักขัตฤกษ์และวันหยุดพิเศษ</p></div>
                 <i class="fas fa-chevron-right text-gray-400"></i>
               </div>
             </button>
-            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50" data-settings="leave-types">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900">ประเภทการลา</h4>
-                  <p class="text-sm text-gray-600">กำหนดประเภทการลาและเงื่อนไข</p>
-                </div>
+                <div><h4 class="font-medium text-gray-900">ประเภทการลา</h4><p class="text-sm text-gray-600">กำหนดประเภทการลาและเงื่อนไข</p></div>
                 <i class="fas fa-chevron-right text-gray-400"></i>
               </div>
             </button>
-            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50" data-settings="roles">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900">สิทธิ์การใช้งาน</h4>
-                  <p class="text-sm text-gray-600">จัดการสิทธิ์ผู้ใช้และการเข้าถึง</p>
-                </div>
+                <div><h4 class="font-medium text-gray-900">สิทธิ์การใช้งาน</h4><p class="text-sm text-gray-600">จัดการสิทธิ์ผู้ใช้และการเข้าถึง</p></div>
                 <i class="fas fa-chevron-right text-gray-400"></i>
               </div>
             </button>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- PANELS -->
+      <div id="settings-panel-employee" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">ข้อมูลพนักงาน</h3>
+            <button class="text-sm text-blue-600 hover:underline" data-settings-back><i class="fas fa-arrow-left mr-2"></i>กลับ</button>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label class="text-sm text-gray-700">รหัสพนักงาน</label><input id="emp-code" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น EMP001"></div>
+              <div><label class="text-sm text-gray-700">ชื่อ-นามสกุล</label><input id="emp-name" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น สมชาย ใจดี"></div>
+              <div><label class="text-sm text-gray-700">แผนก</label><input id="emp-dept" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น แผนกผลิต"></div>
+              <div><label class="text-sm text-gray-700">ตำแหน่ง</label><input id="emp-pos" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น พนักงานทั่วไป"></div>
+            </div>
+            <div class="mt-4 flex justify-end"><button id="emp-save" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-panel-structure" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">แผนกและตำแหน่ง</h3>
+            <button class="text-sm text-blue-600 hover:underline" data-settings-back><i class="fas fa-arrow-left mr-2"></i>กลับ</button>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label class="text-sm text-gray-700">ชื่อแผนก</label><input id="dept-name" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น แผนกคุณภาพ"></div>
+              <div><label class="text-sm text-gray-700">หัวหน้าแผนก</label><input id="dept-manager" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น นาย ก.กอ"></div>
+            </div>
+            <div class="mt-4 flex justify-end"><button id="structure-save" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-panel-shifts" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">กะการทำงาน</h3>
+            <button class="text-sm text-blue-600 hover:underline" data-settings-back><i class="fas fa-arrow-left mr-2"></i>กลับ</button>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label class="text-sm text-gray-700">ชื่อกะ</label><input id="shift-name" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น กะเช้า"></div>
+              <div><label class="text-sm text-gray-700">เวลาเริ่ม</label><input id="shift-start" type="time" class="mt-1 w-full px-3 py-2 border rounded-lg" value="08:00"></div>
+              <div><label class="text-sm text-gray-700">เวลาสิ้นสุด</label><input id="shift-end" type="time" class="mt-1 w-full px-3 py-2 border rounded-lg" value="17:30"></div>
+            </div>
+            <div class="mt-4 flex justify-end"><button id="shift-save" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-panel-holidays" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">วันหยุดและปฏิทิน</h3>
+            <button class="text-sm text-blue-600 hover:underline" data-settings-back><i class="fas fa-arrow-left mr-2"></i>กลับ</button>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label class="text-sm text-gray-700">วันที่</label><input id="holiday-date" type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></div>
+              <div><label class="text-sm text-gray-700">ชื่อวันหยุด</label><input id="holiday-name" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น วันปีใหม่"></div>
+              <div><label class="text-sm text-gray-700">ประเภท</label><select id="holiday-type" class="mt-1 w-full px-3 py-2 border rounded-lg"><option>นักขัตฤกษ์</option><option>พิเศษ</option></select></div>
+            </div>
+            <div class="mt-4 flex justify-end"><button id="holiday-save" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-panel-leave-types" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">ประเภทการลา</h3>
+            <button class="text-sm text-blue-600 hover:underline" data-settings-back><i class="fas fa-arrow-left mr-2"></i>กลับ</button>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label class="text-sm text-gray-700">รหัส</label><input id="leave-code" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น SL"></div>
+              <div><label class="text-sm text-gray-700">ชื่อประเภท</label><input id="leave-name" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น ลาป่วย"></div>
+              <div><label class="text-sm text-gray-700">จ่ายค่าจ้าง</label><select id="leave-paid" class="mt-1 w-full px-3 py-2 border rounded-lg"><option value="true">จ่าย</option><option value="false">ไม่จ่าย</option></select></div>
+            </div>
+            <div class="mt-4 flex justify-end"><button id="leave-type-save" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-panel-roles" class="hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">สิทธิ์การใช้งาน</h3>
+            <button class="text-sm text-blue-600 hover:underline" data-settings-back><i class="fas fa-arrow-left mr-2"></i>กลับ</button>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label class="text-sm text-gray-700">ผู้ใช้</label><input id="role-user" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="อีเมลผู้ใช้"></div>
+              <div><label class="text-sm text-gray-700">บทบาท</label><select id="role-name" class="mt-1 w-full px-3 py-2 border rounded-lg"><option>employee</option><option>dept_head</option><option>admin</option></select></div>
+              <div><label class="text-sm text-gray-700">แผนก</label><input id="role-dept" class="mt-1 w-full px-3 py-2 border rounded-lg" placeholder="เช่น แผนกผลิต"></div>
+            </div>
+            <div class="mt-4 flex justify-end"><button id="role-save" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
   </main>
 
-  <!-- Correction Modal -->
+  <!-- Modals -->
   <div id="correctionModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
-    <div class="flex items-center justify-center min-height-screen p-4 min-h-screen">
+    <div class="flex items-center justify-center p-4 min-h-screen">
       <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">แก้ไขเวลาเข้า-ออกงาน</h3>
-        </div>
+        <div class="px-6 py-4 border-b"><h3 class="text-lg font-semibold text-gray-900">แก้ไขเวลาเข้า-ออกงาน</h3></div>
         <div class="p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">พนักงาน</label>
-              <p class="text-sm text-gray-900">สมชาย ใจดี (EMP001)</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">วันที่</label>
-              <p class="text-sm text-gray-900">1 ธันวาคม 2024</p>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">เวลาเข้า</label>
-                <input type="time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="08:00">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">เวลาออก</label>
-                <input type="time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="17:30">
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">เหตุผล</label>
-              <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="3" placeholder="ระบุเหตุผลในการแก้ไข...">ลืมสแกนบัตรออกงาน เนื่องจากรีบไปรับลูกที่โรงเรียน</textarea>
-            </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm text-gray-700 mb-2">เวลาเข้า</label><input type="time" class="w-full px-3 py-2 border rounded-lg" value="08:00"></div>
+            <div><label class="block text-sm text-gray-700 mb-2">เวลาออก</label><input type="time" class="w-full px-3 py-2 border rounded-lg" value="17:30"></div>
           </div>
+          <div class="mt-4"><label class="block text-sm text-gray-700 mb-2">เหตุผล</label><textarea class="w-full px-3 py-2 border rounded-lg" rows="3">ลืมสแกนบัตรออกงาน</textarea></div>
         </div>
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-          <button onclick="closeCorrectionModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-            ยกเลิก
-          </button>
-          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            บันทึก
-          </button>
+        <div class="px-6 py-4 border-t flex justify-end space-x-3">
+          <button onclick="closeCorrectionModal()" class="px-4 py-2 bg-gray-100 rounded-lg">ยกเลิก</button>
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg">บันทึก</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Leave Request Modal -->
   <div id="leaveModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
-    <div class="flex items-center justify-center min-height-screen p-4 min-h-screen">
+    <div class="flex items-center justify-center p-4 min-h-screen">
       <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">เพิ่มคำขอลา</h3>
-        </div>
+        <div class="px-6 py-4 border-b"><h3 class="text-lg font-semibold text-gray-900">เพิ่มคำขอลา</h3></div>
         <div class="p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">พนักงาน</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>เลือกพนักงาน</option>
-                <option>สมชาย ใจดี (EMP001)</option>
-                <option>สุดา รักงาน (EMP002)</option>
-                <option>ประยุทธ ขยันทำงาน (EMP003)</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทการลา</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>ลาป่วย</option>
-                <option>ลากิจ</option>
-                <option>ลาพักร้อน</option>
-                <option>ทำงานนอกสถานที่</option>
-              </select>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">วันที่เริ่ม</label>
-                <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">วันที่สิ้นสุด</label>
-                <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">เหตุผล</label>
-              <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="3" placeholder="ระบุเหตุผลในการลา..."></textarea>
-            </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm text-gray-700 mb-2">วันที่เริ่ม</label><input type="date" class="w-full px-3 py-2 border rounded-lg"></div>
+            <div><label class="block text-sm text-gray-700 mb-2">วันที่สิ้นสุด</label><input type="date" class="w-full px-3 py-2 border rounded-lg"></div>
           </div>
+          <div class="mt-4"><label class="block text-sm text-gray-700 mb-2">เหตุผล</label><textarea class="w-full px-3 py-2 border rounded-lg" rows="3"></textarea></div>
         </div>
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-          <button onclick="closeLeaveModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-            ยกเลิก
-          </button>
-          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            ส่งคำขอ
-          </button>
+        <div class="px-6 py-4 border-t flex justify-end space-x-3">
+          <button onclick="closeLeaveModal()" class="px-4 py-2 bg-gray-100 rounded-lg">ยกเลิก</button>
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg">ส่งคำขอ</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ✅ App Script -->
+  <!-- App Script -->
   <script>
-    // --- Supabase config (ของจริงจากไฟล์เดิม) ---
+    // Supabase (ใช้คีย์ public)
     const SUPABASE_URL = "https://ftapghebfvfxbtqojkfp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0YXBnaGViZnZmeGJ0cW9qa2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NDI2OTQsImV4cCI6MjA3MzIxODY5NH0.OEbaUGNAfC1HvWOQM9nptpPJuxB_vzi8GV7aFAd-L10";
-
     let client = null;
-    try {
-      if (window.supabase) {
-        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // ทดสอบ query แบบไม่บล็อก UI
-        (async () => {
-          try {
-            const { data, error } = await client.from("attendance_days").select("*").limit(1);
-            if (error) console.warn("Supabase test error:", error.message);
-            else console.log("Supabase OK, attendance_days sample:", data);
-          } catch (err) {
-            console.warn("Supabase test failed:", err);
-          }
-        })();
-      } else {
-        console.warn("Supabase library not loaded");
-      }
-    } catch (err) {
-      console.warn("Supabase init error:", err);
+    if (window.supabase) {
+      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // --- App init ---
     document.addEventListener('DOMContentLoaded', () => {
-      initializeApp();
-      setupEventListeners();
-    });
-
-    function initializeApp() {
-      // Set current date
-      const currentDate = new Date().toLocaleDateString('th-TH', {
-        year: 'numeric', month: 'long', day: 'numeric'
-      });
-      const cd = document.getElementById('currentDate');
-      if (cd) cd.textContent = currentDate;
-
-      // Show dashboard by default
+      const currentDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('currentDate').textContent = currentDate;
       showSection('dashboard');
-    }
 
-    function setupEventListeners() {
       // Sidebar toggle
-      const toggleBtn = document.getElementById('sidebarToggle');
-      if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+      document.getElementById('sidebarToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        document.getElementById('mainContent').classList.toggle('ml-0');
+        document.getElementById('mainContent').classList.toggle('ml-64');
+      });
 
-      // Navigation items
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
+      // Left nav
+      document.querySelectorAll('.nav-item').forEach(a => {
+        a.addEventListener('click', (e) => {
           e.preventDefault();
-          const section = item.getAttribute('data-section');
-          showSection(section);
-          setActiveNavItem(item);
+          showSection(a.dataset.section);
+          setActive(a);
         });
       });
 
-      // File upload
-      const fileInput = document.getElementById('fileInput');
+      // Upload
       const uploadArea = document.getElementById('uploadArea');
-      if (uploadArea) {
-        uploadArea.addEventListener('click', () => fileInput && fileInput.click());
-        uploadArea.addEventListener('dragover', handleDragOver);
-        uploadArea.addEventListener('drop', handleFileDrop);
-      }
-      if (fileInput) fileInput.addEventListener('change', handleFileSelect);
+      const fileInput = document.getElementById('fileInput');
+      uploadArea?.addEventListener('click', () => fileInput?.click());
+      uploadArea?.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('border-blue-400'); });
+      uploadArea?.addEventListener('dragleave', () => uploadArea.classList.remove('border-blue-400'));
+      uploadArea?.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('border-blue-400'); if (e.dataTransfer.files?.length) previewFake(); });
+      fileInput?.addEventListener('change', () => previewFake());
+      document.getElementById('importBtn')?.addEventListener('click', () => alert('นำเข้าข้อมูลสำเร็จ!'));
 
-      // Import button
-      const importBtn = document.getElementById('importBtn');
-      if (importBtn) importBtn.addEventListener('click', handleImport);
-
-      // Close modals when clicking backdrop
-      document.addEventListener('click', (e) => {
-        if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
-          closeCorrectionModal();
-          closeLeaveModal();
-        }
+      // Settings: open panels
+      document.querySelectorAll('[data-settings]').forEach(btn => {
+        btn.addEventListener('click', () => openSettingsPanel(btn.dataset.settings));
       });
-    }
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const mainContent = document.getElementById('mainContent');
-      if (!sidebar || !mainContent) return;
-      sidebar.classList.toggle('-translate-x-full');
-      mainContent.classList.toggle('ml-0');
-      mainContent.classList.toggle('ml-64');
-    }
-
-    function showSection(sectionName) {
-      // Hide all sections
-      document.querySelectorAll('.section-content').forEach(section => section.classList.add('hidden'));
-      // Show selected section
-      const target = document.getElementById(`${sectionName}-section`);
-      if (target) target.classList.remove('hidden');
-    }
-
-    function setActiveNavItem(activeItem) {
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('bg-blue-50', 'text-blue-700');
-        item.classList.add('text-gray-700');
+      // Settings: back buttons
+      document.querySelectorAll('[data-settings-back]').forEach(btn => {
+        btn.addEventListener('click', () => showSettingsHome());
       });
-      activeItem.classList.add('bg-blue-50', 'text-blue-700');
-      activeItem.classList.remove('text-gray-700');
+      // Settings: fake save handlers
+      const clickToast = (id) => document.getElementById(id)?.addEventListener('click', () => toast('บันทึกสำเร็จ'));
+      ['emp-save','structure-save','shift-save','holiday-save','leave-type-save','role-save'].forEach(clickToast);
+    });
+
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
     }
 
-    // --- File handling (demo) ---
-    function handleDragOver(e) {
-      e.preventDefault();
-      e.currentTarget.classList.add('border-blue-400');
+    function setActive(a) {
+      document.querySelectorAll('.nav-item').forEach(x => { x.classList.remove('bg-blue-50','text-blue-700'); x.classList.add('text-gray-700'); });
+      a.classList.add('bg-blue-50','text-blue-700'); a.classList.remove('text-gray-700');
     }
 
-    function handleFileDrop(e) {
-      e.preventDefault();
-      e.currentTarget.classList.remove('border-blue-400');
-      const files = e.dataTransfer.files;
-      if (files && files.length > 0) processFile(files[0]);
+    function showSection(name) {
+      document.querySelectorAll('.section-content').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(`${name}-section`)?.classList.remove('hidden');
+      if (name === 'settings') showSettingsHome(); // reset to home each time
     }
 
-    function handleFileSelect(e) {
-      const files = e.target.files;
-      if (files && files.length > 0) processFile(files[0]);
-    }
-
-    function processFile(file) {
-      // ตัวอย่าง preview แบบจำลอง
+    // ----- Import demo preview
+    function previewFake() {
       const preview = document.getElementById('filePreview');
       const tbody = document.getElementById('previewTableBody');
       if (!preview || !tbody) return;
-      const sampleData = [
+      const rows = [
         ['2024-12-01 08:00:15', 'EMP001', 'สมชาย ใจดี', 'แผนกผลิต', 'IN', 'Door-01'],
         ['2024-12-01 08:15:22', 'EMP002', 'สุดา รักงาน', 'แผนกคุณภาพ', 'IN', 'Door-01'],
         ['2024-12-01 07:55:10', 'EMP003', 'ประยุทธ ขยันทำงาน', 'แผนกผลิต', 'IN', 'Door-01'],
         ['2024-12-01 17:25:45', 'EMP003', 'ประยุทธ ขยันทำงาน', 'แผนกผลิต', 'OUT', 'Door-01'],
-        ['2024-12-01 17:30:12', 'EMP002', 'สุดา รักงาน', 'แผนกคุณภาพ', 'OUT', 'Door-01']
       ];
-      tbody.innerHTML = '';
-      sampleData.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = row.map(cell => `<td class="px-6 py-4 text-sm text-gray-900">${cell}</td>`).join('');
-        tbody.appendChild(tr);
-      });
+      tbody.innerHTML = rows.map(r => `<tr>${r.map(c => `<td class='px-6 py-3 text-sm text-gray-900'>${c}</td>`).join('')}</tr>`).join('');
       preview.classList.remove('hidden');
     }
 
-    function handleImport() {
-      alert('นำเข้าข้อมูลสำเร็จ! ประมวลผล 1,247 รายการ');
-      const preview = document.getElementById('filePreview');
-      if (preview) preview.classList.add('hidden');
+    // ----- Settings panels
+    function openSettingsPanel(key) {
+      document.getElementById('settings-home').classList.add('hidden');
+      hideAllSettingPanels();
+      const panel = document.getElementById(`settings-panel-${key}`);
+      if (panel) { panel.classList.remove('hidden'); }
+      else { toast('ยังไม่ได้ทำหน้าจอนี้'); }
     }
 
-    // --- Modals (export เป็น global ให้เรียกจาก onclick ใน HTML ได้) ---
-    function _openCorrectionModal() {
-      const m = document.getElementById('correctionModal');
-      if (m) m.classList.remove('hidden');
-    }
-    function _closeCorrectionModal() {
-      const m = document.getElementById('correctionModal');
-      if (m) m.classList.add('hidden');
-    }
-    function _openLeaveModal() {
-      const m = document.getElementById('leaveModal');
-      if (m) m.classList.remove('hidden');
-    }
-    function _closeLeaveModal() {
-      const m = document.getElementById('leaveModal');
-      if (m) m.classList.add('hidden');
+    function showSettingsHome() {
+      hideAllSettingPanels();
+      document.getElementById('settings-home').classList.remove('hidden');
     }
 
-    // ผูกไว้ที่ window ให้ onclick="openCorrectionModal(...)" ใช้งานได้
+    function hideAllSettingPanels() {
+      document.querySelectorAll('[id^="settings-panel-"]').forEach(p => p.classList.add('hidden'));
+    }
+
+    // Modals
+    function _openCorrectionModal(){ document.getElementById('correctionModal').classList.remove('hidden'); }
+    function _closeCorrectionModal(){ document.getElementById('correctionModal').classList.add('hidden'); }
+    function _openLeaveModal(){ document.getElementById('leaveModal').classList.remove('hidden'); }
+    function _closeLeaveModal(){ document.getElementById('leaveModal').classList.add('hidden'); }
     window.openCorrectionModal = _openCorrectionModal;
     window.closeCorrectionModal = _closeCorrectionModal;
     window.openLeaveModal = _openLeaveModal;
