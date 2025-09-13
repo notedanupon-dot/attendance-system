@@ -91,54 +91,101 @@
           <div class="kpi-bar mt-4"><span id="scan-bar" style="width:0%"></span></div>
           <p class="text-xs text-gray-500 mt-2"><span data-i18n="kpi_scan_meta_prefix">พนักงานทั้งหมด:</span> <span id="stat-total-emp">—</span> <span data-i18n="people">คน</span> | <span data-i18n="scanned">มีสแกน:</span> <span id="stat-scanned">—</span> <span data-i18n="people">คน</span></p>
         </div>
-      <!-- Absent detail table -->
-      <div id="absent-detail" class="bg-white rounded-xl shadow-sm p-6 mt-2 hidden">
-        <!-- Filters -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">แผนก</label>
-            <select id="absentDeptFilter" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">ทั้งหมด</option>
-            </select>
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-sm text-gray-600 mb-1">ค้นหาชื่อ/รหัสพนักงาน</label>
-            <input id="absentSearch" type="text" placeholder="เช่น WTH00001 หรือ สมหญิง" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-        </div>
-    
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold text-gray-900">รายชื่อขาดงาน (ไม่มี Check-in)</h3>
-          <div class="text-sm text-gray-600">
-            วันที่: <span id="absentDate">—</span> • รวม <span id="absentCount">0</span> คน
+      
+      <!-- Department summary table -->
+      
+      <button id="deptSummaryRefresh" class="px-3 py-1.5 rounded-lg border hover:bg-gray-50"><span data-i18n="refresh">รีเฟรช</span></button>
+    </div>
+  </div>
+  <div id="deptCards" class="flex gap-3 overflow-x-auto pb-2 snap-x">
+    <div class="text-gray-500 px-3 py-4">${_t('loading')}</div>
+  </div>
+</div>
+            <button id="deptSummaryRefresh" class="px-3 py-1.5 rounded-lg border hover:bg-gray-50"><span data-i18n="refresh">รีเฟรช</span></button>
           </div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">แผนก</th>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">รหัสพนักงาน</th>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">ชื่อ-สกุล</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="col_department">แผนก</span></th>
+                <th class="text-right px-3 py-2 text-emerald-700 font-medium">${_t('present')}</th>
+                <th class="text-right px-3 py-2 text-amber-700 font-medium">${_t('late')}</th>
+                <th class="text-right px-3 py-2 text-rose-700 font-medium">${_t('absent')}</th>
+                <th class="text-right px-3 py-2 text-gray-700 font-semibold">รวม</th>
+              </tr>
+            </thead>
+            <tbody id="deptSummaryTBody" class="divide-y divide-gray-100 bg-white">
+              <tr><td colspan="5" class="px-3 py-4 text-gray-500">${_t('loading')}</td></tr>
+            </tbody>
+            <tfoot class="bg-gray-50">
+              <tr class="font-semibold">
+                <td class="px-3 py-2">${_t('totals_label')}</td>
+                <td class="px-3 py-2 text-right" id="deptTotalPresent">-</td>
+                <td class="px-3 py-2 text-right" id="deptTotalLate">-</td>
+                <td class="px-3 py-2 text-right" id="deptTotalAbsent">-</td>
+                <td class="px-3 py-2 text-right" id="deptTotalAll">-</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Absent detail table -->
+      <div id="absent-detail" class="bg-white rounded-xl shadow-sm p-6 mt-2 hidden">
+        <!-- Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1" data-i18n="dept_label">แผนก</label>
+            <select id="absentDeptFilter" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="" data-i18n="all_option">ทั้งหมด</option>
+            </select>
+          </div>
+
+<div id="dept-summary" class="bg-white rounded-xl shadow-sm p-6 mt-2">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold text-gray-900" data-i18n="dept_cards_title">สรุปตามแผนก (การ์ดแนวนอน)</h3>
+    <div class="flex items-center gap-3 text-sm text-gray-700">
+      <div><span data-i18n="date_label">วันที่</span>: <span id="deptSummaryDate">—</span></div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600 mb-1" data-i18n="search_label">ค้นหาชื่อ/รหัสพนักงาน</label>
+            <input id="absentSearch" type="text" data-i18n="absent_search_placeholder" placeholder="เช่น WTH00001 หรือ สมหญิง" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+    
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold text-gray-900" data-i18n="absent_title">รายชื่อ${_t('absent')} (ไม่มี Check-in)</h3>
+          <div class="text-sm text-gray-600">
+            <span data-i18n="date_label">วันที่</span>: <span id="absentDate">—</span> • <span data-i18n="total_people">รวม</span> <span id="absentCount">0</span> <span data-i18n="people">คน</span>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="col_department">แผนก</span></th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="col_empcode">รหัสพนักงาน</span></th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="col_fullname">ชื่อ-สกุล</span></th>
               </tr>
             </thead>
             <tbody id="absentTBody" class="divide-y divide-gray-100 bg-white"></tbody>
           </table>
         </div>
         <div class="mt-3 text-right">
-          <button id="absentCloseBtn" class="px-3 py-2 rounded-lg border hover:bg-gray-50">ซ่อนตาราง</button>
+          <button id="absentCloseBtn" class="px-3 py-2 rounded-lg border hover:bg-gray-50"><span data-i18n="hide_table">ซ่อนตาราง</span></button>
         </div>
       </div>
 
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_late">มาสาย</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_late">${_t('late')}</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-yellow-600"><span id="stat-late">—</span></p>
             <div class="bg-yellow-100 p-3 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover cursor-pointer" id="kpi-card-absent">
-          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_absent">ขาดงาน</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_absent">${_t('absent')}</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-red-600"><span id="stat-absent">—</span></p>
             <div class="bg-red-100 p-3 rounded-full"><i class="fas fa-user-times text-red-600 text-xl"></i></div>
@@ -434,7 +481,7 @@
     }
 
     function handleParsedRows(rawRows) {
-      if (!rawRows?.length) { toast('ไม่พบข้อมูลในไฟล์', false); return; }
+      if (!rawRows?.length) { toast('${_t('no_data')}ในไฟล์', false); return; }
       let cols = resolveColumns(rawRows[0], COLUMN_MAP);
       const isDayMode = !!(cols.date && (cols.check_in || cols.check_out));
 
@@ -764,8 +811,25 @@
       triggerDownload(url,'employee_import_errors.csv');
     }
 // ===== i18n (TH/EN/JA) =====
-const I18N = {
-  th: {
+const I18N = { th: {
+    dept_cards_title: "สรุปตามแผนก (การ์ดแนวนอน)",
+    label_date: "วันที่:",
+    refresh: "รีเฟรช",
+    label_present: "มาทำงาน",
+    label_late: "มาสาย",
+    label_absent: "ขาดงาน",
+    total_overall: "รวมทั้งหมด",
+    loading: "กำลังโหลดข้อมูล...",
+    no_results: "ไม่พบข้อมูล",
+    no_absentees: "ไม่มีผู้ขาดงาน",
+    load_failed: "โหลดข้อมูลไม่สำเร็จ",
+    dept_label: "แผนก",
+    all_option: "ทั้งหมด",
+    search_label: "ค้นหาชื่อ/รหัสพนักงาน",
+    absent_search_placeholder: "เช่น WTH00001 หรือ สมหญิง",
+    absent_title: "รายชื่อขาดงาน (ไม่มี Check-in)",
+    hide_table: "ซ่อนตาราง",
+
     title: "Attendance & Leave Review System",
     app_title: "ระบบจัดการเวลาเข้างานและการลา",
     menu_dashboard: "แดชบอร์ด",
@@ -781,8 +845,25 @@ const I18N = {
     kpi_scan_meta_prefix: "พนักงานทั้งหมด:",
     people: "คน",
     scanned: "มีสแกน:",
-    kpi_late: "มาสาย",
-    kpi_absent: "ขาดงาน",
+    kpi_late: "${_t('late')}",
+    kpi_absent: "${_t('absent')
+    , dept_summary_title: "สรุปตามแผนก (การ์ดแนวนอน)",
+      date_label: "วันที่",
+      refresh: "รีเฟรช",
+      present: "${_t('label_present')}",
+      late: "${_t('label_late')}",
+      absent: "${_t('label_absent')}",
+      totals_label: "${_t('total_overall')}",
+      loading: "${_t('loading')}",
+      no_data: "${_t('no_results')}",
+      fetch_failed: "${_t('load_failed')}",
+      total_people: "รวม",
+      hide_table: "ซ่อนตาราง",
+      col_department: "แผนก",
+      col_empcode: "รหัสพนักงาน",
+      col_fullname: "ชื่อ-สกุล",
+      absent_title: "รายชื่อ${_t('label_absent')} (ไม่มี Check-in)"
+    }",
     kpi_pending: "คำขอรออนุมัติ",
     pending_note: "แก้ไขเวลา + คำขอลา (pending)",
     import_title: "นำเข้าข้อมูลจาก iVMS4200-AC",
@@ -809,8 +890,25 @@ const I18N = {
     ready_to_import: "พร้อมนำเข้า:",
     import_emp: "นำเข้าพนักงาน",
     emp_db_error: "รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)"
-  },
-  en: {
+  }, en: {
+    dept_cards_title: "Department summary (horizontal cards)",
+    label_date: "Date:",
+    refresh: "Refresh",
+    label_present: "Present",
+    label_late: "Late",
+    label_absent: "Absent",
+    total_overall: "Overall total",
+    loading: "Loading...",
+    no_results: "No results",
+    no_absentees: "No absentees",
+    load_failed: "Failed to load",
+    dept_label: "Department",
+    all_option: "All",
+    search_label: "Search name / code",
+    absent_search_placeholder: "e.g. WTH00001 or Jane",
+    absent_title: "Absent list (no check-in)",
+    hide_table: "Hide table",
+
     title: "Attendance & Leave Review System",
     app_title: "Attendance & Leave Review System",
     menu_dashboard: "Dashboard",
@@ -854,8 +952,42 @@ const I18N = {
     ready_to_import: "Ready:",
     import_emp: "Import employees",
     emp_db_error: "Database error details (employees)"
-  },
-  ja: {
+  
+    , dept_summary_title: "Department summary (horizontal cards)",
+      date_label: "Date",
+      refresh: "Refresh",
+      present: "Present",
+      late: "Late",
+      absent: "Absent",
+      totals_label: "Overall",
+      loading: "Loading...",
+      no_data: "No data",
+      fetch_failed: "Failed to load",
+      total_people: "Total",
+      hide_table: "Hide table",
+      col_department: "Department",
+      col_empcode: "Employee Code",
+      col_fullname: "Full name",
+      absent_title: "Absent list (no check-in)"
+    }}, ja: {
+    dept_cards_title: "部門サマリー（横カード）",
+    label_date: "日付:",
+    refresh: "更新",
+    label_present: "出勤",
+    label_late: "遅刻",
+    label_absent: "欠勤",
+    total_overall: "合計",
+    loading: "読み込み中...",
+    no_results: "結果がありません",
+    no_absentees: "欠勤者はいません",
+    load_failed: "読み込みに失敗しました",
+    dept_label: "部門",
+    all_option: "すべて",
+    search_label: "氏名/社員コードで検索",
+    absent_search_placeholder: "例: WTH00001 または Taro",
+    absent_title: "欠勤者リスト（チェックインなし）",
+    hide_table: "表を隠す",
+
     title: "出勤・休暇レビューシステム",
     app_title: "出勤・休暇レビューシステム",
     menu_dashboard: "ダッシュボード",
@@ -899,8 +1031,24 @@ const I18N = {
     ready_to_import: "準備：",
     import_emp: "従業員をインポート",
     emp_db_error: "データベースエラーの詳細（従業員）"
-  }
-};
+  
+    , dept_summary_title: "部門別サマリー（横カード）",
+      date_label: "日付",
+      refresh: "更新",
+      present: "出勤",
+      late: "遅刻",
+      absent: "欠勤",
+      totals_label: "合計",
+      loading: "読み込み中...",
+      no_data: "データがありません",
+      fetch_failed: "読み込みに失敗しました",
+      total_people: "合計",
+      hide_table: "表を隠す",
+      col_department: "部門",
+      col_empcode: "社員コード",
+      col_fullname: "氏名",
+      absent_title: "欠勤者リスト（チェックインなし）"
+    }} };
 
 function applyI18n(lang){
   const dict = I18N[lang] || I18N.th;
@@ -950,6 +1098,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+
+
+async function _buildNameMap(codes){
+  if(!codes?.length) return new Map();
+  // Supabase 'in' needs unique array
+  const uniq = Array.from(new Set(codes));
+  try {
+    const { data: emps, error } = await client
+      .from('employees')
+      .select('employee_code, first_name, last_name')
+      .in('employee_code', uniq)
+      .limit(10000);
+    if (error || !emps) return new Map();
+    const mp = new Map();
+    emps.forEach(e => {
+      const fn = (e.first_name || '').trim();
+      const ln = (e.last_name || '').trim();
+      const nm = (fn + ' ' + ln).trim() || fn || ln || '';
+      mp.set(e.employee_code, nm);
+    });
+    return mp;
+  } catch(e) {
+    console.error('name map failed', e);
+    return new Map();
+  }
+}
+
+
+// Simple translator for dynamic strings
+function _t(key){
+  try{
+    const lang = localStorage.getItem('lang') || 'th';
+    return (I18N[lang] && I18N[lang][key]) || (I18N['th'] && I18N['th'][key]) || key;
+  }catch(e){ return key; }
+}
 // ===== Absent detail (no check-in) =====
 async function getActiveWorkDate() {
   // try known date inputs, fallback to latest work_date
@@ -974,12 +1157,12 @@ async function loadAbsentDetail() {
   const date = await getActiveWorkDate();
   const tbody = document.getElementById('absentTBody');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">กำลังโหลดข้อมูล...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">${_t('loading')}</td></tr>`;
   document.getElementById('absentDate').textContent = date;
 
   const { data, error } = await client
     .from('attendance_days')
-    .select('department, employee_code, full_name')
+    .select('department, employee_code')
     .eq('work_date', date)
     .eq('status', 'absent')
     .order('department', { ascending: true })
@@ -987,17 +1170,28 @@ async function loadAbsentDetail() {
     .limit(10000);
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-red-600">โหลดข้อมูลไม่สำเร็จ</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-red-600">${_t('fetch_failed')}</td></tr>`;
     console.error(error);
     return;
   }
 
-  _ABSENT_CACHE = data || [];
+  // enrich with names from employees
+  try {
+    const codes = (data||[]).map(r => r.employee_code).filter(Boolean);
+    const nameMap = await _buildNameMap(codes);
+    _ABSENT_CACHE = (data||[]).map(r => ({
+      ...r,
+      full_name: nameMap.get(r.employee_code) || ''
+    }));
+  } catch(e){
+    console.warn('enrich names failed', e);
+    _ABSENT_CACHE = data || [];
+  }
   fillAbsentFilters(_ABSENT_CACHE);
   renderAbsentTable();
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">ไม่มีผู้ขาดงาน</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">${_t('no_absent')}</td></tr>`;
     document.getElementById('absentCount').textContent = 0;
   } else {
     document.getElementById('absentCount').textContent = data.length;
@@ -1005,7 +1199,7 @@ async function loadAbsentDetail() {
       <tr>
         <td class="px-3 py-2">${r.department || '-'}</td>
         <td class="px-3 py-2">${r.employee_code || '-'}</td>
-        <td class="px-3 py-2">${r.full_name || '-'}</td>
+        <td class="px-3 py-2">${(r.full_name && r.full_name.trim()) ? r.full_name : '-'}</td>
       </tr>
     `).join('');
     tbody.innerHTML = rows;
@@ -1047,7 +1241,7 @@ function fillAbsentFilters(data){
   const sel = document.getElementById('absentDeptFilter');
   if(!sel) return;
   const unique = Array.from(new Set((data||[]).map(r => r.department || ''))).sort((a,b)=> (a||'').localeCompare((b||''),'th-TH'));
-  sel.innerHTML = '<option value="">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
+  sel.innerHTML = '<option value="" data-i18n="all_option">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
 }
 
 function renderAbsentTable(){
@@ -1061,23 +1255,118 @@ function renderAbsentTable(){
     rows = rows.filter(r => (r.department || '') === dept);
   }
   if(q){
-    rows = rows.filter(r => (String(r.employee_code||'').toLowerCase().includes(q) || String(r.full_name||'').toLowerCase().includes(q)));
+    rows = rows.filter(r => (String(r.employee_code||'').toLowerCase().includes(q) || String((r.full_name||'').toLowerCase()).includes(q)));
   }
 
   // sort by department, employee_code
   rows.sort((a,b)=> ((a.department||'').localeCompare((b.department||''),'th-TH') || String(a.employee_code||'').localeCompare(String(b.employee_code||''))));
 
   if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-gray-500">ไม่พบข้อมูล</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-gray-500">${_t('no_data')}</td></tr>';
   } else {
     tbody.innerHTML = rows.map(r => `
       <tr>
         <td class="px-3 py-2">${r.department || '-'}</td>
         <td class="px-3 py-2">${r.employee_code || '-'}</td>
-        <td class="px-3 py-2">${r.full_name || '-'}</td>
+        <td class="px-3 py-2">${(r.full_name && r.full_name.trim()) ? r.full_name : '-'}</td>
       </tr>`).join('');
   }
   const cnt = document.getElementById('absentCount'); if(cnt) cnt.textContent = rows.length;
+}
+
+// ===== Department summary table =====
+async function loadDeptSummary(){
+  const date = await getActiveWorkDate();
+  const tb = document.getElementById('deptSummaryTBody');
+  const dtEl = document.getElementById('deptSummaryDate');
+  if (dtEl) dtEl.textContent = date;
+  if (tb) tb.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-gray-500">${_t('loading')}</td></tr>`;
+
+  try{
+    const { data, error } = await client
+      .from('attendance_days')
+      .select('department, status')
+      .eq('work_date', date)
+      .limit(20000);
+
+    if (error) throw error;
+
+    const agg = new Map();
+    (data || []).forEach(r => {
+      const dep = r.department || '(ไม่ระบุ)';
+      if(!agg.has(dep)) agg.set(dep, {present:0, late:0, absent:0, total:0});
+      const s = r.status;
+      if (s === 'present') agg.get(dep).present++;
+      else if (s === 'late') agg.get(dep).late++;
+      else if (s === 'absent') agg.get(dep).absent++;
+      agg.get(dep).total++;
+    });
+
+    const rows = Array.from(agg.entries()).sort((a,b)=> a[0].localeCompare(b[0], 'th-TH'));
+    let tPresent=0, tLate=0, tAbsent=0, tAll=0;
+
+    if (!rows.length){
+      tb.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-gray-500">${_t('no_data')}</td></tr>`;
+    } else {
+      tb.innerHTML = rows.map(([dep, v]) => {
+        tPresent += v.present; tLate += v.late; tAbsent += v.absent; tAll += v.total;
+        return `<tr>
+          <td class="px-3 py-2">${dep}</td>
+          <td class="px-3 py-2 text-right text-emerald-700">${v.present}</td>
+          <td class="px-3 py-2 text-right text-amber-700">${v.late}</td>
+          <td class="px-3 py-2 text-right text-rose-700">${v.absent}</td>
+          <td class="px-3 py-2 text-right font-medium">${v.total}</td>
+        </tr>`
+      }).join('');
+    }
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; }
+    set('deptTotalPresent', tPresent);
+    set('deptTotalLate', tLate);
+    set('deptTotalAbsent', tAbsent);
+    set('deptTotalAll', tAll);
+
+  } catch(err){
+    console.error(err);
+    if (tb) tb.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-red-600">${_t('fetch_failed')}</td></tr>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('deptSummaryRefresh')?.addEventListener('click', loadDeptSummary);
+  // auto load once
+  loadDeptSummary();
+});
+
+// ===== Department summary (horizontal cards) =====
+function renderDeptCards(rows, totals){
+  const wrap = document.getElementById('deptCards');
+  if(!wrap) return;
+  if(!rows || !rows.length){
+    wrap.innerHTML = '<div class="text-gray-500 px-3 py-4">${_t('no_data')}</div>';
+    return;
+  }
+  const totalCard = (t) => `
+    <div class="min-w-[300px] snap-start rounded-xl border bg-indigo-50 shadow-sm p-4 flex items-center justify-between">
+      <div class="font-semibold text-indigo-900">${_t('totals_label')}</div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="text-right"><div class="text-xs text-gray-500">${_t('present')}</div><div class="text-xl font-bold text-emerald-700">${t.present}</div></div>
+        <div class="text-right"><div class="text-xs text-gray-500">${_t('late')}</div><div class="text-xl font-bold text-amber-700">${t.late}</div></div>
+        <div class="text-right"><div class="text-xs text-gray-500">${_t('absent')}</div><div class="text-xl font-bold text-rose-700">${t.absent}</div></div>
+      </div>
+    </div>`;
+
+  const card = (dep, v) => `
+    <div class="min-w-[300px] snap-start rounded-xl border bg-white shadow-sm p-4 flex items-center justify-between hover:shadow transition">
+      <div class="font-medium text-gray-900">${dep}</div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="text-right"><div class="text-xs text-gray-500">${_t('present')}</div><div class="text-xl font-semibold text-emerald-700">${v.present}</div></div>
+        <div class="text-right"><div class="text-xs text-gray-500">${_t('late')}</div><div class="text-xl font-semibold text-amber-700">${v.late}</div></div>
+        <div class="text-right"><div class="text-xs text-gray-500">${_t('absent')}</div><div class="text-xl font-semibold text-rose-700">${v.absent}</div></div>
+      </div>
+    </div>`;
+
+  wrap.innerHTML = totalCard(totals) + rows.map(([dep, v]) => card(dep, v)).join('');
 }
 </script>
 </body>
