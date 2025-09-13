@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>i18n Flag Switcher Demo</title>
   <title>Attendance & Leave Review System</title>
 
   <!-- Tailwind / Icons -->
@@ -892,6 +893,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   applyI18n(localStorage.getItem('lang') || 'th');
 });
+
+/* Duplicate I18N and applyI18n removed to prevent redeclaration error. */
 
   </script>
 </body>
