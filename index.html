@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="th">
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,6 +12,10 @@
 
   <!-- Supabase client (ต้องโหลดก่อนสคริปต์ของเรา) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- CSV/XLSX parsers for real file import -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
@@ -76,16 +78,16 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">อัตราการสแกนสำเร็จ</p><p class="text-3xl font-bold text-green-600">94.2%</p><p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up mr-1"></i>+2.1% จากเมื่อวาน</p></div><div class="bg-green-100 p-3 rounded-full"><i class="fas fa-check-circle text-green-600 text-xl"></i></div></div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">อัตราการสแกนสำเร็จ</p><p class="text-3xl font-bold text-green-600" id="stat-scan-rate">—</p><p class="text-xs text-green-600 mt-1" id="stat-scan-delta"></p></div><div class="bg-green-100 p-3 rounded-full"><i class="fas fa-check-circle text-green-600 text-xl"></i></div></div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">มาสาย</p><p class="text-3xl font-bold text-yellow-600">23 คน</p><p class="text-xs text-red-600 mt-1"><i class="fas fa-arrow-up mr-1"></i>+5 คน จากเมื่อวาน</p></div><div class="bg-yellow-100 p-3 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div></div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">มาสาย</p><p class="text-3xl font-bold text-yellow-600" id="stat-late">—</p><p class="text-xs text-red-600 mt-1" id="stat-late-delta"></p></div><div class="bg-yellow-100 p-3 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div></div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">ขาดงาน</p><p class="text-3xl font-bold text-red-600">7 คน</p><p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-down mr-1"></i>-2 คน จากเมื่อวาน</p></div><div class="bg-red-100 p-3 rounded-full"><i class="fas fa-user-times text-red-600 text-xl"></i></div></div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">ขาดงาน</p><p class="text-3xl font-bold text-red-600" id="stat-absent">—</p><p class="text-xs text-green-600 mt-1" id="stat-absent-delta"></p></div><div class="bg-red-100 p-3 rounded-full"><i class="fas fa-user-times text-red-600 text-xl"></i></div></div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">คำขอรออนุมัติ</p><p class="text-3xl font-bold text-orange-600">12</p><p class="text-xs text-gray-600 mt-1">8 แก้ไข, 4 ลา</p></div><div class="bg-orange-100 p-3 rounded-full"><i class="fas fa-hourglass-half text-orange-600 text-xl"></i></div></div>
+          <div class="flex items-center justify-between"><div><p class="text-sm font-medium text-gray-600">คำขอรออนุมัติ</p><p class="text-3xl font-bold text-orange-600" id="stat-pending">—</p><p class="text-xs text-gray-600 mt-1" id="stat-pending-note"></p></div><div class="bg-orange-100 p-3 rounded-full"><i class="fas fa-hourglass-half text-orange-600 text-xl"></i></div></div>
         </div>
       </div>
     </section>
@@ -100,7 +102,7 @@
           <h3 class="text-lg font-medium text-gray-900 mb-2">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h3>
           <p class="text-gray-600 mb-4">รองรับไฟล์ .csv และ .xlsx ขนาดไม่เกิน 10MB</p>
           <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx">
-          <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">เลือกไฟล์</button>
+          <button id="chooseFileBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">เลือกไฟล์</button>
         </div>
       </div>
       <div id="filePreview" class="bg-white rounded-xl shadow-sm p-6 hidden">
@@ -121,9 +123,9 @@
           </table>
         </div>
         <div class="mt-6 flex justify-between items-center">
-          <div class="text-sm text-gray-600"><span class="font-medium text-green-600">1,247</span> รายการพร้อมนำเข้า, <span class="font-medium text-red-600">3</span> รายการมีข้อผิดพลาด</div>
+          <div class="text-sm text-gray-600"><span id="readyCount" class="font-medium text-green-600">0</span> รายการพร้อมนำเข้า</div>
           <div class="space-x-3">
-            <button class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ดาวน์โหลด Error Log</button>
+            <button id="downloadErrorBtn" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ดาวน์โหลด Error Log</button>
             <button id="importBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">นำเข้าข้อมูล</button>
           </div>
         </div>
@@ -144,7 +146,7 @@
       </div>
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 class="text-lg font-semibold text-gray-900">รายการเวลาเข้างาน - วันที่ 1 ธันวาคม 2024</h3>
+          <h3 class="text-lg font-semibold text-gray-900">รายการเวลาเข้างาน - ตัวอย่าง</h3>
           <div class="space-x-2">
             <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"><i class="fas fa-check mr-2"></i>อนุมัติที่เลือก</button>
             <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"><i class="fas fa-times mr-2"></i>ปฏิเสธที่เลือก</button>
@@ -420,7 +422,7 @@
 
   <!-- App Script -->
   <script>
-    // Supabase (ใช้คีย์ public)
+    // ====== CONFIG Supabase (ใช้คีย์ public) ======
     const SUPABASE_URL = "https://ftapghebfvfxbtqojkfp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0YXBnaGViZnZmeGJ0cW9qa2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NDI2OTQsImV4cCI6MjA3MzIxODY5NH0.OEbaUGNAfC1HvWOQM9nptpPJuxB_vzi8GV7aFAd-L10";
     let client = null;
@@ -428,10 +430,38 @@
       client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
+    // ====== Utils ======
+    function toast(msg, ok = true) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-6 right-6 ' + (ok ? 'bg-gray-900' : 'bg-red-600') + ' text-white px-4 py-3 rounded-lg shadow-lg';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2200);
+    }
+
+    const clean = v => (v ?? '').toString().replace(/^'+/, '').trim() || null;
+
+    function toISO(v) {
+      if (!v) return null;
+      // รองรับ "2025-09-12 07:58:57", "12 Sep 2025 07:58:57", "2025/09/12 07:58:57" ฯลฯ
+      const d = new Date(v);
+      return isNaN(d) ? null : d.toISOString();
+    }
+
+    // เดาทิศทางจากค่า direction หรือชื่ออุปกรณ์
+    function inferDirection(directionVal, deviceVal) {
+      const s = (directionVal ?? '').toString().toUpperCase();
+      const d = (deviceVal ?? '').toString().toUpperCase();
+      if (/(^|[^A-Z])IN([^A-Z]|$)/.test(s) || /ENTR(Y|ANCE)/.test(d) || /(^|[^A-Z])IN([^A-Z]|$)/.test(d)) return 'IN';
+      if (/(^|[^A-Z])OUT([^A-Z]|$)/.test(s) || /EXIT/.test(d) || /\bOUT\b/.test(d)) return 'OUT';
+      return 'IN'; // fallback เป็น IN เพื่อผ่าน constraint not null
+    }
+
+    // ====== DOM Ready ======
     document.addEventListener('DOMContentLoaded', () => {
       const currentDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
       document.getElementById('currentDate').textContent = currentDate;
-      showSection('dashboard');
+      showSection('import'); // เปิดหน้าที่จะทดสอบนำเข้าเลย
 
       // Sidebar toggle
       document.getElementById('sidebarToggle').addEventListener('click', () => {
@@ -449,36 +479,30 @@
         });
       });
 
-      // Upload
+      // Upload handlers (จริง)
       const uploadArea = document.getElementById('uploadArea');
-      const fileInput = document.getElementById('fileInput');
-      uploadArea?.addEventListener('click', () => fileInput?.click());
-      uploadArea?.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('border-blue-400'); });
-      uploadArea?.addEventListener('dragleave', () => uploadArea.classList.remove('border-blue-400'));
-      uploadArea?.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('border-blue-400'); if (e.dataTransfer.files?.length) previewFake(); });
-      fileInput?.addEventListener('change', () => previewFake());
-      document.getElementById('importBtn')?.addEventListener('click', () => alert('นำเข้าข้อมูลสำเร็จ!'));
+      const fileInput  = document.getElementById('fileInput');
+      document.getElementById('chooseFileBtn').addEventListener('click', () => fileInput.click());
 
-      // Settings: open panels
-      document.querySelectorAll('[data-settings]').forEach(btn => {
-        btn.addEventListener('click', () => openSettingsPanel(btn.dataset.settings));
+      uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('border-blue-400'); });
+      uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('border-blue-400'));
+      uploadArea.addEventListener('click', () => fileInput.click());
+      uploadArea.addEventListener('drop', e => {
+        e.preventDefault(); uploadArea.classList.remove('border-blue-400');
+        if (e.dataTransfer?.files?.length) processFile(e.dataTransfer.files[0]);
       });
-      // Settings: back buttons
-      document.querySelectorAll('[data-settings-back]').forEach(btn => {
-        btn.addEventListener('click', () => showSettingsHome());
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files?.length) processFile(fileInput.files[0]);
       });
-      // Settings: fake save handlers
-      const clickToast = (id) => document.getElementById(id)?.addEventListener('click', () => toast('บันทึกสำเร็จ'));
-      ['emp-save','structure-save','shift-save','holiday-save','leave-type-save','role-save'].forEach(clickToast);
+
+      document.getElementById('importBtn').addEventListener('click', handleImport);
+
+      // Settings: open/back + fake save toasts
+      document.querySelectorAll('[data-settings]').forEach(btn => btn.addEventListener('click', () => openSettingsPanel(btn.dataset.settings)));
+      document.querySelectorAll('[data-settings-back]').forEach(btn => btn.addEventListener('click', () => showSettingsHome()));
+      ['emp-save','structure-save','shift-save','holiday-save','leave-type-save','role-save']
+        .forEach(id => document.getElementById(id)?.addEventListener('click', () => toast('บันทึกสำเร็จ')));
     });
-
-    function toast(msg) {
-      const t = document.createElement('div');
-      t.className = 'fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 1800);
-    }
 
     function setActive(a) {
       document.querySelectorAll('.nav-item').forEach(x => { x.classList.remove('bg-blue-50','text-blue-700'); x.classList.add('text-gray-700'); });
@@ -487,205 +511,176 @@
 
     function showSection(name) {
       document.querySelectorAll('.section-content').forEach(sec => sec.classList.add('hidden'));
-      document.getElementById(`${name}-section`)?.classList.remove('hidden');
-      if (name === 'settings') showSettingsHome(); // reset to home each time
+      document.getElementById(name + '-section')?.classList.remove('hidden');
+      if (name === 'settings') showSettingsHome(); // reset
     }
 
-  
-  // ======  CONFIG (แก้ชื่อคอลัมน์ตามไฟล์ export ของคุณได้)  ======
-  const COLUMN_MAP = {
-    timestamp: ['เวลา','Time','Datetime','DateTime'],       // วัน-เวลาอ่านบัตร
-    emp_id:    ['รหัสพนักงาน','EmployeeID','CardNo','Emp'], // รหัสพนักงาน
-    name:      ['ชื่อ','Name','FullName'],                   // ชื่อ-นามสกุล
-    dept:      ['แผนก','Department','Dept'],                 // แผนก
-    direction: ['ประเภท','Event','Direction','IN/OUT'],      // IN / OUT
-    device:    ['อุปกรณ์','Device','Door','Reader']          // ชื่อเครื่อง/ประตู
-  };
+    // ====== Parse & Preview ======
+    // รองรับหัวตารางของ iVMS export (Attendance Details/Original Records)
+    const COLUMN_MAP = {
+      timestamp: ['เวลา','Time','Datetime','DateTime'],
+      emp_id:    ['รหัสพนักงาน','EmployeeID','CardNo','Emp','Person ID','PersonID','UserID'],
+      name:      ['ชื่อ','Name','FullName','Full Name'],
+      dept:      ['แผนก','Department','Dept'],
+      direction: ['ประเภท','Event','Direction','IN/OUT','Attendance Status','Status'],
+      device:    ['อุปกรณ์','Device','Door','Reader','Attendance Check Point','Custom Name','Device Name']
+    };
 
-  // ใช้เก็บข้อมูลที่ parse แล้วเพื่อ preview และอัปโหลดจริง
-  let rowsToImport = [];
+    let rowsToImport = [];
+    let errorRows = [];
 
-  // --------- เลือกไฟล์ & แปลงเป็น JSON ----------
-  async function processFile(file) {
-    const ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (ext === 'csv') {
-      const parsed = await parseCSV(file);
-      handleParsedRows(parsed);
-    } else if (ext === 'xlsx' || ext === 'xls') {
-      const parsed = await parseXLSX(file);
-      handleParsedRows(parsed);
-    } else {
-      alert('รองรับเฉพาะ .csv หรือ .xlsx');
-    }
-  }
-
-  function parseCSV(file) {
-    return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (res) => resolve(res.data),
-        error: reject
-      });
-    });
-  }
-
-  function parseXLSX(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const wb = XLSX.read(e.target.result, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
-        resolve(json);
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  }
-
-  // แมพคอลัมน์ → ฟอร์แมตก่อนอัปโหลด และทำตัวอย่างแสดงผล
-  function handleParsedRows(rawRows) {
-    // หา key จริงจาก header
-    const cols = Object.fromEntries(Object.entries(COLUMN_MAP).map(([k, aliases]) => {
-      const found = Object.keys(rawRows[0] || {}).find(h =>
-        aliases.some(a => a.toLowerCase() === String(h).trim().toLowerCase())
-      );
-      return [k, found || null];
-    }));
-
-    // แปลงให้อยู่ในรูปมาตรฐาน
-    rowsToImport = (rawRows || [])
-      .map(r => ({
-        event_time: toISO(r[cols.timestamp]),
-        employee_code: clean(r[cols.emp_id]),
-        full_name: clean(r[cols.name]),
-        department: clean(r[cols.dept]),
-        direction: normalizeDir(r[cols.direction]),
-        device: clean(r[cols.device])
-      }))
-      .filter(x => x.event_time && x.employee_code && (x.direction === 'IN' || x.direction === 'OUT'));
-
-    // สร้างตัวอย่างแสดงผล (เอา 50 แถวแรก)
-    buildPreview(rowsToImport.slice(0, 50));
-  }
-
-  function toISO(v) {
-    if (!v) return null;
-    // พยายามแปลงทุกเคสเป็น ISO — ถ้าไฟล์เป็น "2024-12-01 08:00:15" ก็ใช้ได้เลย
-    const d = new Date(v);
-    return isNaN(d) ? null : d.toISOString();
-  }
-  const clean = v => (v ?? '').toString().trim() || null;
-  function normalizeDir(v) {
-    const s = (v ?? '').toString().toUpperCase();
-    if (s.includes('IN')) return 'IN';
-    if (s.includes('OUT')) return 'OUT';
-    return null;
+    function resolveColumns(firstRow) {
+      const headers = Object.keys(firstRow || {});
+      return Object.fromEntries(Object.entries(COLUMN_MAP).map(([key, aliases]) => {
+        const found = headers.find(h => aliases.some(a => a.toLowerCase() === String(h).trim().toLowerCase()));
+        return [key, found || null];
+      }));
     }
 
-  // --------- แสดงตัวอย่างในตาราง ----------
-  function buildPreview(rows) {
-    const preview = document.getElementById('filePreview');
-    const tbody = document.getElementById('previewTableBody');
-    if (!preview || !tbody) return;
-    tbody.innerHTML = '';
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="px-6 py-4 text-sm text-gray-900">${r.event_time ?? '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${r.employee_code ?? '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${r.full_name ?? '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${r.department ?? '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${r.direction ?? '-'}</td>
-        <td class="px-6 py-4 text-sm text-gray-900">${r.device ?? '-'}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    preview.classList.remove('hidden');
-  }
-
-  // --------- อัปโหลดขึ้น Supabase (chunk ทีละ 500) ----------
-  async function handleImport() {
-    if (!rowsToImport.length) { alert('ยังไม่มีข้อมูลสำหรับนำเข้า'); return; }
-    if (!client) { alert('Supabase client ยังไม่พร้อม'); return; }
-
-    // เขียนลงตาราง raw_scans (ดู SQL สร้างตารางด้านล่าง)
-    const CHUNK = 500;
-    let ok = 0, fail = 0;
-
-    for (let i = 0; i < rowsToImport.length; i += CHUNK) {
-      const batch = rowsToImport.slice(i, i + CHUNK);
-      const { error, count } = await client
-        .from('raw_scans')
-        .upsert(batch, { onConflict: 'employee_code,event_time', ignoreDuplicates: true, count: 'exact' });
-      if (error) {
-        console.error(error);
-        fail += batch.length;
-      } else {
-        ok += batch.length;
+    async function processFile(file) {
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      try {
+        const rawRows = (ext === 'csv') ? await parseCSV(file)
+                        : (ext === 'xlsx' || ext === 'xls') ? await parseXLSX(file)
+                        : null;
+        if (!rawRows) return toast('รองรับเฉพาะ .csv หรือ .xlsx', false);
+        handleParsedRows(rawRows);
+      } catch (e) {
+        console.error(e);
+        toast('อ่านไฟล์ไม่สำเร็จ', false);
       }
     }
 
-    // หลังอัปโหลด เรียกฟังก์ชันประมวลผลให้สรุปเป็นรายวัน
-    const dFrom = new Date(rowsToImport[0].event_time);
-    const dTo   = new Date(rowsToImport[rowsToImport.length-1].event_time);
-    const fromStr = dFrom.toISOString().slice(0,10);
-    const toStr   = dTo.toISOString().slice(0,10);
-
-    const rpc = await client.rpc('process_raw_scans', { p_from: fromStr, p_to: toStr });
-    if (rpc.error) console.error('process_raw_scans error:', rpc.error);
-
-    alert(`นำเข้าแล้ว ${ok} รายการ (พลาด ${fail})`);
-    // อัปเดตตัวเลขบนแดชบอร์ด
-    await refreshDashboardToday();
-    // ซ่อน preview
-    document.getElementById('filePreview')?.classList.add('hidden');
-  }
-
-  // --------- ดึงตัวเลขสรุปบนแดชบอร์ด (วันนี้) ----------
-  async function refreshDashboardToday() {
-    try {
-      const today = new Date().toISOString().slice(0,10);
-      const { data, error } = await client
-        .from('attendance_days')
-        .select('status')
-        .eq('work_date', today);
-      if (error) return;
-
-      const total = data.length || 1;
-      const late  = data.filter(x => x.status === 'late').length;
-      const absent = data.filter(x => x.status === 'absent').length;
-      const missing = data.filter(x => x.status === 'missing_out').length;
-      const present = data.filter(x => x.status === 'present').length;
-
-      // อัปเดต DOM ถ้าคุณตั้ง id ไว้เองสามารถ map ได้
-      // (ในหน้าตัวอย่างตัวเลขคงที่—ถ้าต้องการให้ผมใส่ id และอัปเดตสด ๆ บอกได้)
-      console.log({present, late, absent, missing, total});
-    } catch(e) {
-      console.warn(e);
+    function parseCSV(file) {
+      return new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: res => resolve(res.data),
+          error: reject
+        });
+      });
     }
-  }
 
-  // ⚠️ ผูก event ของ uploader (แทนของเดิม)
-  const fileInput = document.getElementById('fileInput');
-  const uploadArea = document.getElementById('uploadArea');
-  uploadArea?.addEventListener('click', () => fileInput?.click());
-  uploadArea?.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('border-blue-400'); });
-  uploadArea?.addEventListener('dragleave', () => uploadArea.classList.remove('border-blue-400'));
-  uploadArea?.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('border-blue-400'); if (e.dataTransfer.files?.length) processFile(e.dataTransfer.files[0]); });
-  fileInput?.addEventListener('change', () => { if (fileInput.files?.length) processFile(fileInput.files[0]); });
+    function parseXLSX(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const wb = XLSX.read(e.target.result, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
+          resolve(json);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+    }
 
-  document.getElementById('importBtn')?.addEventListener('click', handleImport);
+    function handleParsedRows(rawRows) {
+      if (!rawRows?.length) { toast('ไม่พบข้อมูลในไฟล์', false); return; }
+      const cols = resolveColumns(rawRows[0]);
 
+      rowsToImport = [];
+      errorRows = [];
+      for (const r of rawRows) {
+        const event_time = toISO(r[cols.timestamp]);
+        const employee_code = clean(r[cols.emp_id]);
+        const full_name = clean(r[cols.name]);
+        const department = clean(r[cols.dept]);
+        const device = clean(r[cols.device]);
+        // infer direction with fallback
+        const direction = inferDirection(r[cols.direction], device);
 
-    // ----- Settings panels
+        const row = { event_time, employee_code, full_name, department, direction, device };
+        if (!event_time || !employee_code) {
+          errorRows.push({ reason: 'missing_time_or_emp', row: r });
+          continue;
+        }
+        if (!direction) {
+          errorRows.push({ reason: 'cannot_infer_direction', row: r });
+          continue;
+        }
+        rowsToImport.push(row);
+      }
+
+      buildPreview(rowsToImport.slice(0, 50));
+      document.getElementById('readyCount').textContent = rowsToImport.length.toLocaleString('th-TH');
+      document.getElementById('filePreview').classList.remove('hidden');
+
+      console.log('Parsed rows:', rowsToImport.length, 'Errors:', errorRows.length);
+    }
+
+    function buildPreview(rows) {
+      const tbody = document.getElementById('previewTableBody');
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td class="px-6 py-4 text-sm text-gray-900">${r.event_time ?? '-'}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">${r.employee_code ?? '-'}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">${r.full_name ?? '-'}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">${r.department ?? '-'}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">${r.direction ?? '-'}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">${r.device ?? '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ดาวน์โหลด error log (CSV) ถ้ามี
+    document.addEventListener('click', (e) => {
+      if (e.target && e.target.id === 'downloadErrorBtn') {
+        if (!errorRows.length) { toast('ไม่มีข้อผิดพลาดในไฟล์ล่าสุด'); return; }
+        const headers = ['reason','raw_json'];
+        const csv = [headers.join(',')].concat(errorRows.map(er => `${er.reason},"${(JSON.stringify(er.row) || '').replace(/"/g,'""')}"`)).join('\\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'import_errors.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    // ====== Import to Supabase ======
+    async function handleImport() {
+      if (!rowsToImport.length) { toast('ยังไม่มีข้อมูลสำหรับนำเข้า', false); return; }
+      if (!client) { toast('Supabase client ยังไม่พร้อม', false); return; }
+
+      const CHUNK = 500;
+      let ok = 0, fail = 0;
+
+      for (let i = 0; i < rowsToImport.length; i += CHUNK) {
+        const batch = rowsToImport.slice(i, i + CHUNK);
+        const { error } = await client
+          .from('raw_scans')
+          .upsert(batch, { onConflict: 'employee_code,event_time', ignoreDuplicates: true });
+        if (error) {
+          console.error('Upsert error:', error);
+          fail += batch.length;
+        } else {
+          ok += batch.length;
+        }
+      }
+
+      // สรุปผลรายวันผ่าน RPC
+      const dFrom = new Date(rowsToImport[0].event_time);
+      const dTo   = new Date(rowsToImport[rowsToImport.length-1].event_time);
+      const fromStr = dFrom.toISOString().slice(0,10);
+      const toStr   = dTo.toISOString().slice(0,10);
+
+      const rpc = await client.rpc('process_raw_scans', { p_from: fromStr, p_to: toStr });
+      if (rpc.error) console.error('process_raw_scans error:', rpc.error);
+
+      toast(`นำเข้าแล้ว ${ok.toLocaleString('th-TH')} รายการ (พลาด ${fail.toLocaleString('th-TH')})`);
+      document.getElementById('filePreview').classList.add('hidden');
+    }
+
+    // ====== Settings helpers ======
     function openSettingsPanel(key) {
       document.getElementById('settings-home').classList.add('hidden');
       hideAllSettingPanels();
-      const panel = document.getElementById(`settings-panel-${key}`);
-      if (panel) { panel.classList.remove('hidden'); }
-      else { toast('ยังไม่ได้ทำหน้าจอนี้'); }
+      const panel = document.getElementById('settings-panel-' + key);
+      if (panel) panel.classList.remove('hidden');
+      else toast('ยังไม่ได้ทำหน้าจอนี้');
     }
 
     function showSettingsHome() {
@@ -697,7 +692,7 @@
       document.querySelectorAll('[id^="settings-panel-"]').forEach(p => p.classList.add('hidden'));
     }
 
-    // Modals
+    // ====== Modals bindings ======
     function _openCorrectionModal(){ document.getElementById('correctionModal').classList.remove('hidden'); }
     function _closeCorrectionModal(){ document.getElementById('correctionModal').classList.add('hidden'); }
     function _openLeaveModal(){ document.getElementById('leaveModal').classList.remove('hidden'); }
