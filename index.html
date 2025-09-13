@@ -491,20 +491,193 @@
       if (name === 'settings') showSettingsHome(); // reset to home each time
     }
 
-    // ----- Import demo preview
-    function previewFake() {
-      const preview = document.getElementById('filePreview');
-      const tbody = document.getElementById('previewTableBody');
-      if (!preview || !tbody) return;
-      const rows = [
-        ['2024-12-01 08:00:15', 'EMP001', 'สมชาย ใจดี', 'แผนกผลิต', 'IN', 'Door-01'],
-        ['2024-12-01 08:15:22', 'EMP002', 'สุดา รักงาน', 'แผนกคุณภาพ', 'IN', 'Door-01'],
-        ['2024-12-01 07:55:10', 'EMP003', 'ประยุทธ ขยันทำงาน', 'แผนกผลิต', 'IN', 'Door-01'],
-        ['2024-12-01 17:25:45', 'EMP003', 'ประยุทธ ขยันทำงาน', 'แผนกผลิต', 'OUT', 'Door-01'],
-      ];
-      tbody.innerHTML = rows.map(r => `<tr>${r.map(c => `<td class='px-6 py-3 text-sm text-gray-900'>${c}</td>`).join('')}</tr>`).join('');
-      preview.classList.remove('hidden');
+  
+  // ======  CONFIG (แก้ชื่อคอลัมน์ตามไฟล์ export ของคุณได้)  ======
+  const COLUMN_MAP = {
+    timestamp: ['เวลา','Time','Datetime','DateTime'],       // วัน-เวลาอ่านบัตร
+    emp_id:    ['รหัสพนักงาน','EmployeeID','CardNo','Emp'], // รหัสพนักงาน
+    name:      ['ชื่อ','Name','FullName'],                   // ชื่อ-นามสกุล
+    dept:      ['แผนก','Department','Dept'],                 // แผนก
+    direction: ['ประเภท','Event','Direction','IN/OUT'],      // IN / OUT
+    device:    ['อุปกรณ์','Device','Door','Reader']          // ชื่อเครื่อง/ประตู
+  };
+
+  // ใช้เก็บข้อมูลที่ parse แล้วเพื่อ preview และอัปโหลดจริง
+  let rowsToImport = [];
+
+  // --------- เลือกไฟล์ & แปลงเป็น JSON ----------
+  async function processFile(file) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (ext === 'csv') {
+      const parsed = await parseCSV(file);
+      handleParsedRows(parsed);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      const parsed = await parseXLSX(file);
+      handleParsedRows(parsed);
+    } else {
+      alert('รองรับเฉพาะ .csv หรือ .xlsx');
     }
+  }
+
+  function parseCSV(file) {
+    return new Promise((resolve, reject) => {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => resolve(res.data),
+        error: reject
+      });
+    });
+  }
+
+  function parseXLSX(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        resolve(json);
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // แมพคอลัมน์ → ฟอร์แมตก่อนอัปโหลด และทำตัวอย่างแสดงผล
+  function handleParsedRows(rawRows) {
+    // หา key จริงจาก header
+    const cols = Object.fromEntries(Object.entries(COLUMN_MAP).map(([k, aliases]) => {
+      const found = Object.keys(rawRows[0] || {}).find(h =>
+        aliases.some(a => a.toLowerCase() === String(h).trim().toLowerCase())
+      );
+      return [k, found || null];
+    }));
+
+    // แปลงให้อยู่ในรูปมาตรฐาน
+    rowsToImport = (rawRows || [])
+      .map(r => ({
+        event_time: toISO(r[cols.timestamp]),
+        employee_code: clean(r[cols.emp_id]),
+        full_name: clean(r[cols.name]),
+        department: clean(r[cols.dept]),
+        direction: normalizeDir(r[cols.direction]),
+        device: clean(r[cols.device])
+      }))
+      .filter(x => x.event_time && x.employee_code && (x.direction === 'IN' || x.direction === 'OUT'));
+
+    // สร้างตัวอย่างแสดงผล (เอา 50 แถวแรก)
+    buildPreview(rowsToImport.slice(0, 50));
+  }
+
+  function toISO(v) {
+    if (!v) return null;
+    // พยายามแปลงทุกเคสเป็น ISO — ถ้าไฟล์เป็น "2024-12-01 08:00:15" ก็ใช้ได้เลย
+    const d = new Date(v);
+    return isNaN(d) ? null : d.toISOString();
+  }
+  const clean = v => (v ?? '').toString().trim() || null;
+  function normalizeDir(v) {
+    const s = (v ?? '').toString().toUpperCase();
+    if (s.includes('IN')) return 'IN';
+    if (s.includes('OUT')) return 'OUT';
+    return null;
+    }
+
+  // --------- แสดงตัวอย่างในตาราง ----------
+  function buildPreview(rows) {
+    const preview = document.getElementById('filePreview');
+    const tbody = document.getElementById('previewTableBody');
+    if (!preview || !tbody) return;
+    tbody.innerHTML = '';
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-6 py-4 text-sm text-gray-900">${r.event_time ?? '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${r.employee_code ?? '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${r.full_name ?? '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${r.department ?? '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${r.direction ?? '-'}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${r.device ?? '-'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    preview.classList.remove('hidden');
+  }
+
+  // --------- อัปโหลดขึ้น Supabase (chunk ทีละ 500) ----------
+  async function handleImport() {
+    if (!rowsToImport.length) { alert('ยังไม่มีข้อมูลสำหรับนำเข้า'); return; }
+    if (!client) { alert('Supabase client ยังไม่พร้อม'); return; }
+
+    // เขียนลงตาราง raw_scans (ดู SQL สร้างตารางด้านล่าง)
+    const CHUNK = 500;
+    let ok = 0, fail = 0;
+
+    for (let i = 0; i < rowsToImport.length; i += CHUNK) {
+      const batch = rowsToImport.slice(i, i + CHUNK);
+      const { error, count } = await client
+        .from('raw_scans')
+        .upsert(batch, { onConflict: 'employee_code,event_time', ignoreDuplicates: true, count: 'exact' });
+      if (error) {
+        console.error(error);
+        fail += batch.length;
+      } else {
+        ok += batch.length;
+      }
+    }
+
+    // หลังอัปโหลด เรียกฟังก์ชันประมวลผลให้สรุปเป็นรายวัน
+    const dFrom = new Date(rowsToImport[0].event_time);
+    const dTo   = new Date(rowsToImport[rowsToImport.length-1].event_time);
+    const fromStr = dFrom.toISOString().slice(0,10);
+    const toStr   = dTo.toISOString().slice(0,10);
+
+    const rpc = await client.rpc('process_raw_scans', { p_from: fromStr, p_to: toStr });
+    if (rpc.error) console.error('process_raw_scans error:', rpc.error);
+
+    alert(`นำเข้าแล้ว ${ok} รายการ (พลาด ${fail})`);
+    // อัปเดตตัวเลขบนแดชบอร์ด
+    await refreshDashboardToday();
+    // ซ่อน preview
+    document.getElementById('filePreview')?.classList.add('hidden');
+  }
+
+  // --------- ดึงตัวเลขสรุปบนแดชบอร์ด (วันนี้) ----------
+  async function refreshDashboardToday() {
+    try {
+      const today = new Date().toISOString().slice(0,10);
+      const { data, error } = await client
+        .from('attendance_days')
+        .select('status')
+        .eq('work_date', today);
+      if (error) return;
+
+      const total = data.length || 1;
+      const late  = data.filter(x => x.status === 'late').length;
+      const absent = data.filter(x => x.status === 'absent').length;
+      const missing = data.filter(x => x.status === 'missing_out').length;
+      const present = data.filter(x => x.status === 'present').length;
+
+      // อัปเดต DOM ถ้าคุณตั้ง id ไว้เองสามารถ map ได้
+      // (ในหน้าตัวอย่างตัวเลขคงที่—ถ้าต้องการให้ผมใส่ id และอัปเดตสด ๆ บอกได้)
+      console.log({present, late, absent, missing, total});
+    } catch(e) {
+      console.warn(e);
+    }
+  }
+
+  // ⚠️ ผูก event ของ uploader (แทนของเดิม)
+  const fileInput = document.getElementById('fileInput');
+  const uploadArea = document.getElementById('uploadArea');
+  uploadArea?.addEventListener('click', () => fileInput?.click());
+  uploadArea?.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('border-blue-400'); });
+  uploadArea?.addEventListener('dragleave', () => uploadArea.classList.remove('border-blue-400'));
+  uploadArea?.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('border-blue-400'); if (e.dataTransfer.files?.length) processFile(e.dataTransfer.files[0]); });
+  fileInput?.addEventListener('change', () => { if (fileInput.files?.length) processFile(fileInput.files[0]); });
+
+  document.getElementById('importBtn')?.addEventListener('click', handleImport);
+
 
     // ----- Settings panels
     function openSettingsPanel(key) {
