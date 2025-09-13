@@ -93,6 +93,20 @@
         </div>
       <!-- Absent detail table -->
       <div id="absent-detail" class="bg-white rounded-xl shadow-sm p-6 mt-2 hidden">
+        <!-- Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">แผนก</label>
+            <select id="absentDeptFilter" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">ทั้งหมด</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600 mb-1">ค้นหาชื่อ/รหัสพนักงาน</label>
+            <input id="absentSearch" type="text" placeholder="เช่น WTH00001 หรือ สมหญิง" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+    
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold text-gray-900">รายชื่อขาดงาน (ไม่มี Check-in)</h3>
           <div class="text-sm text-gray-600">
@@ -978,6 +992,10 @@ async function loadAbsentDetail() {
     return;
   }
 
+  _ABSENT_CACHE = data || [];
+  fillAbsentFilters(_ABSENT_CACHE);
+  renderAbsentTable();
+
   if (!data || data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">ไม่มีผู้ขาดงาน</td></tr>`;
     document.getElementById('absentCount').textContent = 0;
@@ -1017,7 +1035,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Close button
   document.getElementById('absentCloseBtn')?.addEventListener('click', hideAbsentDetail);
+  document.getElementById('absentDeptFilter')?.addEventListener('change', renderAbsentTable);
+  document.getElementById('absentSearch')?.addEventListener('input', renderAbsentTable);
 });
+
+// ----- Absent detail filters -----
+let _ABSENT_CACHE = [];
+
+function fillAbsentFilters(data){
+  // build department options unique
+  const sel = document.getElementById('absentDeptFilter');
+  if(!sel) return;
+  const unique = Array.from(new Set((data||[]).map(r => r.department || ''))).sort((a,b)=> (a||'').localeCompare((b||''),'th-TH'));
+  sel.innerHTML = '<option value="">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
+}
+
+function renderAbsentTable(){
+  const tbody = document.getElementById('absentTBody');
+  if(!tbody) return;
+  const dept = (document.getElementById('absentDeptFilter')?.value || '').trim();
+  const q = (document.getElementById('absentSearch')?.value || '').trim().toLowerCase();
+  let rows = _ABSENT_CACHE.slice();
+
+  if(dept){
+    rows = rows.filter(r => (r.department || '') === dept);
+  }
+  if(q){
+    rows = rows.filter(r => (String(r.employee_code||'').toLowerCase().includes(q) || String(r.full_name||'').toLowerCase().includes(q)));
+  }
+
+  // sort by department, employee_code
+  rows.sort((a,b)=> ((a.department||'').localeCompare((b.department||''),'th-TH') || String(a.employee_code||'').localeCompare(String(b.employee_code||''))));
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-gray-500">ไม่พบข้อมูล</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="px-3 py-2">${r.department || '-'}</td>
+        <td class="px-3 py-2">${r.employee_code || '-'}</td>
+        <td class="px-3 py-2">${r.full_name || '-'}</td>
+      </tr>`).join('');
+  }
+  const cnt = document.getElementById('absentCount'); if(cnt) cnt.textContent = rows.length;
+}
 </script>
 </body>
 </html>
