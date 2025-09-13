@@ -25,6 +25,8 @@
     .modal-backdrop { backdrop-filter: blur(4px); }
     .kpi-bar { height:6px; border-radius:9999px; background:#f1f5f9; overflow:hidden }
     .kpi-bar>span { display:block; height:100%; background:#22c55e }
+    .muted { color:#6b7280 }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -109,13 +111,13 @@
     <!-- Import -->
     <section id="import-section" class="section-content p-6 hidden">
       <h2 class="text-2xl font-semibold text-gray-900 mb-2">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
-      <p class="text-gray-600 mb-6">อัปโหลดไฟล์ CSV หรือ XLSX ที่ export จากระบบ iVMS4200-AC</p>
+      <p class="text-gray-600 mb-6">อัปโหลดไฟล์ CSV/XLSX/XLS ที่ export จากระบบ iVMS4200-AC หรือไฟล์สรุปที่มีคอลัมน์ <span class="mono">Date, Check-in, Check-out</span></p>
       <div class="bg-white rounded-xl shadow-sm p-8 mb-6">
         <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors cursor-pointer">
           <div class="mb-4"><i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i></div>
           <h3 class="text-lg font-medium text-gray-900 mb-2">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h3>
-          <p class="text-gray-600 mb-4">รองรับไฟล์ .csv และ .xlsx ขนาดไม่เกิน 10MB</p>
-          <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx">
+          <p class="text-gray-600 mb-4">รองรับไฟล์ .csv .xlsx .xls ขนาดไม่เกิน 10MB</p>
+          <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls">
           <button id="chooseFileBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">เลือกไฟล์</button>
         </div>
       </div>
@@ -152,27 +154,12 @@
       </div>
     </section>
 
-    <!-- Stubs for other sections -->
-    <section id="attendance-section" class="section-content p-6 hidden">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2>
-      <p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p>
-    </section>
-    <section id="leave-section" class="section-content p-6 hidden">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2>
-      <p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p>
-    </section>
-    <section id="corrections-section" class="section-content p-6 hidden">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไข</h2>
-      <p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p>
-    </section>
-    <section id="reports-section" class="section-content p-6 hidden">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">รายงาน</h2>
-      <p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p>
-    </section>
-    <section id="settings-section" class="section-content p-6 hidden">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">ตั้งค่าระบบ</h2>
-      <p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p>
-    </section>
+    <!-- Stubs -->
+    <section id="attendance-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
+    <section id="leave-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
+    <section id="corrections-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไข</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
+    <section id="reports-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">รายงาน</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
+    <section id="settings-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">ตั้งค่าระบบ</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
   </main>
 
   <script>
@@ -191,13 +178,27 @@
       setTimeout(() => t.remove(), 2400);
     }
     const clean = v => (v ?? '').toString().replace(/^'+/, '').trim() || null;
-    function toISO(v) { const d = new Date(v); return isNaN(d) ? null : d.toISOString(); }
+
+    // Parse time helpers
+    function toISO(v) { if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d.toISOString(); }
+    function combineDateTime(dateStr, timeStr) {
+      if (!dateStr || !timeStr) return null;
+      // normalise e.g. '13/09/2025', '13-09-2025', '2025-09-13'
+      const d = new Date(dateStr);
+      if (isNaN(d)) return null;
+      // ensure time like '08:00' or '8:00' or '08:00:00'
+      const t = String(timeStr).trim();
+      const isoDate = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString().slice(0,10);
+      // keep as local time assumption  (no TZ math): build ISO string 'YYYY-MM-DDTHH:mm:ssZ' in UTC for consistency
+      const parts = t.split(':'); const h = parts[0]||'00', m = parts[1]||'00', s = parts[2]||'00';
+      return `${isoDate}T${h.padStart(2,'0')}:${m.padStart(2,'0')}:${s.padStart(2,'0')}Z`;
+    }
     function inferDirection(dir, dev) {
       const s = (dir ?? '').toString().toUpperCase();
       const d = (dev ?? '').toString().toUpperCase();
       if (/(^|[^A-Z])IN([^A-Z]|$)/.test(s) || /ENTR(Y|ANCE)/.test(d) || /(^|[^A-Z])IN([^A-Z]|$)/.test(d)) return 'IN';
       if (/(^|[^A-Z])OUT([^A-Z]|$)/.test(s) || /\bOUT\b/.test(d) || /EXIT/.test(d)) return 'OUT';
-      return 'IN';
+      return null;
     }
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = (val ?? '—'); }
 
@@ -233,17 +234,24 @@
       await refreshDashboard();
     });
 
-    // ====== Parse & Preview ======
+    // ====== Column map (both RAW logs & DAY summary) ======
     const COLUMN_MAP = {
-      timestamp: ['เวลา','Time','Datetime','DateTime'],
-      emp_id:    ['รหัสพนักงาน','EmployeeID','CardNo','Emp','Person ID','PersonID','UserID'],
+      // RAW logs
+      timestamp: ['เวลา','Time','Datetime','DateTime','Event Time'],
+      emp_id:    ['รหัสพนักงาน','EmployeeID','CardNo','Emp','Person ID','PersonID','UserID','Employee Code','Emp No'],
       name:      ['ชื่อ','Name','FullName','Full Name'],
-      dept:      ['แผนก','Department','Dept'],
+      dept:      ['แผนก','Department','Dept','Division'],
       direction: ['ประเภท','Event','Direction','IN/OUT','Attendance Status','Status'],
-      device:    ['อุปกรณ์','Device','Door','Reader','Attendance Check Point','Custom Name','Device Name']
+      device:    ['อุปกรณ์','Device','Door','Reader','Attendance Check Point','Custom Name','Device Name'],
+      // DAY summary
+      date:         ['Date','วันที่','Work Date','วันทำงาน'],
+      check_in:     ['Check-in','Check In','Time In','In','เวลาเข้า','Check-in Time','เวลาเข้างาน'],
+      check_out:    ['Check-out','Check Out','Time Out','Out','เวลาออก','Check-out Time','เวลาเลิกงาน'],
     };
-    let rowsToImport = [];
+
+    let rowsToImport = [];     // flattened to raw_scans format
     let errorRows = [];
+    let importRange = { from: null, to: null };
 
     function resolveColumns(firstRow) {
       const headers = Object.keys(firstRow || {});
@@ -259,7 +267,7 @@
         const rawRows = (ext === 'csv') ? await parseCSV(file)
                         : (ext === 'xlsx' || ext === 'xls') ? await parseXLSX(file)
                         : null;
-        if (!rawRows) return toast('รองรับเฉพาะ .csv หรือ .xlsx', false);
+        if (!rawRows) return toast('รองรับเฉพาะ .csv .xlsx .xls', false);
         handleParsedRows(rawRows);
       } catch (e) {
         console.error(e); toast('อ่านไฟล์ไม่สำเร็จ', false);
@@ -282,22 +290,75 @@
         reader.readAsArrayBuffer(file);
       });
     }
+
     function handleParsedRows(rawRows) {
       if (!rawRows?.length) { toast('ไม่พบข้อมูลในไฟล์', false); return; }
       const cols = resolveColumns(rawRows[0]);
+
+      // DAY summary mode if we can find date + (check_in or check_out)
+      const isDayMode = !!(cols.date && (cols.check_in || cols.check_out));
+
       rowsToImport = []; errorRows = [];
-      for (const r of rawRows) {
-        const row = {
-          event_time: toISO(r[cols.timestamp]),
-          employee_code: clean(r[cols.emp_id]),
-          full_name: clean(r[cols.name]),
-          department: clean(r[cols.dept]),
-          device: clean(r[cols.device])
-        };
-        row.direction = inferDirection(r[cols.direction], row.device);
-        if (!row.event_time || !row.employee_code) { errorRows.push({ reason: 'missing_time_or_emp', row: r }); continue; }
-        rowsToImport.push(row);
+      let minDate = null, maxDate = null;
+
+      if (isDayMode) {
+        for (const r of rawRows) {
+          const employee_code = clean(r[cols.emp_id]);
+          const full_name = clean(r[cols.name]);
+          const department = clean(r[cols.dept]);
+          const dateStr = r[cols.date];
+          const inStr = r[cols.check_in];
+          const outStr = r[cols.check_out];
+
+          // update range
+          const d0 = new Date(dateStr);
+          if (!isNaN(d0)) {
+            const iso = d0.toISOString().slice(0,10);
+            minDate = (!minDate || iso < minDate) ? iso : minDate;
+            maxDate = (!maxDate || iso > maxDate) ? iso : maxDate;
+          }
+
+          if (!employee_code) { errorRows.push({ reason:'missing_employee_code', row:r }); continue; }
+
+          const inIso  = combineDateTime(dateStr, inStr);
+          const outIso = combineDateTime(dateStr, outStr);
+
+          if (!inIso && !outIso) {
+            // no scans -> will be counted as 'absent' by RPC via employees table
+            continue;
+          }
+          if (inIso) {
+            rowsToImport.push({ event_time: inIso, employee_code, full_name, department, direction: 'IN', device: 'UPLOAD:CHECKIN' });
+          }
+          if (outIso) {
+            rowsToImport.push({ event_time: outIso, employee_code, full_name, department, direction: 'OUT', device: 'UPLOAD:CHECKOUT' });
+          }
+        }
+      } else {
+        // RAW mode as before
+        for (const r of rawRows) {
+          const event_time = toISO(r[cols.timestamp]);
+          const employee_code = clean(r[cols.emp_id]);
+          const full_name = clean(r[cols.name]);
+          const department = clean(r[cols.dept]);
+          const device = clean(r[cols.device]);
+          const direction = inferDirection(r[cols.direction], device);
+
+          if (event_time) {
+            const d = new Date(event_time).toISOString().slice(0,10);
+            minDate = (!minDate || d < minDate) ? d : minDate;
+            maxDate = (!maxDate || d > maxDate) ? d : maxDate;
+          }
+
+          const row = { event_time, employee_code, full_name, department, direction: direction || 'IN', device };
+          if (!row.event_time || !row.employee_code) { errorRows.push({ reason: 'missing_time_or_emp', row: r }); continue; }
+          rowsToImport.push(row);
+        }
       }
+
+      importRange = { from: minDate, to: maxDate };
+
+      // preview
       const tbody = document.getElementById('previewTableBody');
       tbody.innerHTML = rowsToImport.slice(0, 50).map(r => `
         <tr>
@@ -333,15 +394,21 @@
         } else { ok += batch.length; }
       }
 
-      // Process to attendance_days
-      if (ok > 0) {
-        const dFrom = new Date(rowsToImport[0].event_time);
-        const dTo   = new Date(rowsToImport[rowsToImport.length-1].event_time);
-        const fromStr = dFrom.toISOString().slice(0,10);
-        const toStr   = dTo.toISOString().slice(0,10);
-        const rpc = await client.rpc('process_raw_scans', { p_from: fromStr, p_to: toStr });
-        if (rpc.error) { console.error('process_raw_scans error:', rpc.error); firstError = firstError || rpc.error; }
+      // Process to attendance_days for the import date range
+      let fromStr = importRange.from, toStr = importRange.to;
+      if (!fromStr || !toStr) {
+        if (rowsToImport.length) {
+          const dFrom = new Date(rowsToImport[0].event_time);
+          const dTo   = new Date(rowsToImport[rowsToImport.length-1].event_time);
+          fromStr = dFrom.toISOString().slice(0,10);
+          toStr   = dTo.toISOString().slice(0,10);
+        } else {
+          const today = new Date().toISOString().slice(0,10);
+          fromStr = toStr = today;
+        }
       }
+      const rpc = await client.rpc('process_raw_scans', { p_from: fromStr, p_to: toStr });
+      if (rpc.error) { console.error('process_raw_scans error:', rpc.error); firstError = firstError || rpc.error; }
 
       if (firstError) {
         document.getElementById('importDebug').classList.remove('hidden');
@@ -365,7 +432,7 @@
         const latestDay = latestRows?.[0] ? new Date(latestRows[0].event_time).toISOString().slice(0,10)
                                           : new Date().toISOString().slice(0,10);
 
-        // เรียกสรุป (กันพลาด)
+        // เรียกสรุปเพื่อกันพลาด
         await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay });
 
         // จำนวนพนักงานทั้งหมด
@@ -379,18 +446,19 @@
 
         // สถานะของวันล่าสุด
         const { data: dayRows } = await client.from('attendance_days')
-          .select('status')
+          .select('status,in_time,out_time')
           .eq('work_date', latestDay);
         const counts = { present:0, late:0, absent:0, missing_out:0 };
         (dayRows || []).forEach(r => counts[r.status] = (counts[r.status] || 0) + 1);
 
+        // ผู้ที่ไม่มี check-in ต้องเป็น absent -> logic อยู่ใน RPC แล้ว (กรณีไม่มี in_time/out_time จะ absent)
         const scanned = totalEmp ? (totalEmp - counts.absent) : (dayRows || []).length;
         const rate = totalEmp ? Math.round((scanned / totalEmp) * 100) : 0;
 
         setText('stat-total-emp', totalEmp);
         setText('stat-scanned', scanned);
         setText('stat-scan-rate', rate);
-        document.getElementById('scan-bar').style.width = rate + '%';
+        const bar = document.getElementById('scan-bar'); if (bar) bar.style.width = rate + '%';
         setText('stat-late', counts.late || 0);
         setText('stat-absent', counts.absent || 0);
 
