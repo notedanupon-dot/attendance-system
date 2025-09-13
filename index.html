@@ -22,7 +22,6 @@
     .sidebar-transition { transition: all 0.3s ease; }
     .card-hover { transition: all 0.2s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-    .modal-backdrop { backdrop-filter: blur(4px); }
     .kpi-bar { height:6px; border-radius:9999px; background:#f1f5f9; overflow:hidden }
     .kpi-bar>span { display:block; height:100%; background:#22c55e }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
@@ -153,7 +152,7 @@
         </div>
       </div>
 
-      <!-- NEW: Employee Import/Export -->
+      <!-- Employee Import/Export -->
       <div class="bg-white rounded-xl shadow-sm p-8 mt-10">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-xl font-semibold text-gray-900">จัดการข้อมูลพนักงาน (employees)</h3>
@@ -194,6 +193,14 @@
             <tbody id="empPreviewTbody" class="bg-white divide-y divide-gray-200"></tbody>
           </table>
         </div>
+
+        <!-- DB error for employee import -->
+        <div id="empDebug" class="mt-4 hidden">
+          <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
+            <div class="font-semibold mb-1">รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)</div>
+            <pre id="empErrorText" class="text-xs overflow-auto whitespace-pre-wrap"></pre>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -218,7 +225,7 @@
       t.className = 'fixed bottom-6 right-6 ' + (ok ? 'bg-gray-900' : 'bg-red-600') + ' text-white px-4 py-3 rounded-lg shadow-lg';
       t.textContent = msg;
       document.body.appendChild(t);
-      setTimeout(() => t.remove(), 2400);
+      setTimeout(() => t.remove(), 2600);
     }
     const clean = v => (v ?? '').toString().replace(/^'+/, '').trim() || null;
     const isBlank = v => v == null || String(v).trim() === '' || String(v).trim() === '-';
@@ -230,7 +237,7 @@
         const [y,m,d] = s.split('-').map(n => n.padStart(2,'0'));
         return `${y}-${m}-${d}`;
       }
-      let m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2}|\d{4})$/);
+      let m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2}|\d{4})$/);
       if (m) {
         let [_, d, mo, y] = m;
         if (y.length === 2) y = (Number(y) >= 70 ? '19' : '20') + y;
@@ -238,6 +245,36 @@
       }
       const d2 = new Date(s);
       return isNaN(d2) ? null : d2.toISOString().slice(0,10);
+    }
+    // Excel serial to ISO (date only)
+    function excelSerialToISO(n) {
+      const base = Date.UTC(1899, 11, 30); // Excel bug base
+      const ms = Math.round((Number(n) || 0) * 86400000);
+      const iso = new Date(base + ms).toISOString().slice(0,10);
+      return iso;
+    }
+    function parseDateFlexible(v) {
+      if (v == null || v === '') return null;
+      if (typeof v === 'number') {
+        if (v > 59 && v < 60000) return excelSerialToISO(v); // treat as Excel serial
+        const dt = new Date(v); return isNaN(dt) ? null : dt.toISOString().slice(0,10);
+      }
+      let s = String(v).trim();
+      s = s.replace(/\s+/g, ' ');
+      let iso = parseDateSmart(s);
+      if (iso) return iso;
+      if (/^\d{5}$|^\d{6}$/.test(s)) return excelSerialToISO(Number(s));
+      const digits = s.replace(/\D/g,'');
+      if (digits.length === 8) { // ddmmyyyy
+        const d = digits.slice(0,2), m = digits.slice(2,4), y = digits.slice(4);
+        return `${y}-${m}-${d}`;
+      } else if (digits.length === 6) { // ddmmyy
+        let y = digits.slice(4);
+        y = (Number(y) >= 70 ? '19' : '20') + y;
+        const d = digits.slice(0,2), m = digits.slice(2,4);
+        return `${y}-${m}-${d}`;
+      }
+      return null;
     }
     function toBool(v) {
       const s = (v ?? '').toString().trim().toLowerCase();
@@ -291,7 +328,7 @@
       await refreshDashboard();
     });
 
-    // ====== Attendance IMPORT (เหมือนเวอร์ชันก่อน) ======
+    // ====== Attendance IMPORT ======
     const COLUMN_MAP = {
       emp_id:    ['Person ID','Employee ID','EmployeeID','Emp No','Emp Code'],
       name:      ['Name','Full Name','FullName'],
@@ -547,7 +584,7 @@
       if (!raw?.length) { toast('ไฟล์พนักงานว่างเปล่า', false); return; }
       const cols = headerResolve(raw[0], EMP_MAP);
 
-      const seen = new Set();
+      const dedup = new Map();
       for (const r of raw) {
         const employee_code = clean(r[cols.employee_code]);
         const full_name     = clean(r[cols.full_name]);
@@ -559,31 +596,19 @@
           department:  clean(r[cols.department]),
           position:    clean(r[cols.position]),
           is_active:   toBool(r[cols.is_active]),
-          hire_date:   parseDateSmart(r[cols.hire_date]),
-          resign_date: parseDateSmart(r[cols.resign_date]),
+          hire_date:   parseDateFlexible(r[cols.hire_date]),
+          resign_date: parseDateFlexible(r[cols.resign_date]),
           email:       clean(r[cols.email]),
-          phone:       clean(r[cols.phone]),
+          phone:       (r[cols.phone] ?? '').toString().replace(/\s+/g,'').replace(/[^0-9+]/g,'').slice(0,20) || null,
           manager_code: clean(r[cols.manager_code])
         };
-        // default is_active = true if null
-        if (row.is_active === null) row.is_active = true;
+        if (row.is_active === null) row.is_active = true; // default
 
-        // dedup by last occurrence
-        seen.delete(row.employee_code);
-        seen.add(row.employee_code);
-        empRows.push(row);
+        dedup.set(row.employee_code, row);
       }
+      empRows = Array.from(dedup.values());
 
-      // keep only last entry for duplicated codes
-      const filtered = [];
-      const keep = new Set(seen);
-      for (let i = empRows.length - 1; i >= 0; i--) {
-        const code = empRows[i].employee_code;
-        if (keep.has(code)) { filtered.unshift(empRows[i]); keep.delete(code); }
-      }
-      empRows = filtered;
-
-      // render preview
+      // preview
       const tb = document.getElementById('empPreviewTbody');
       tb.innerHTML = empRows.slice(0, 100).map(e => `
         <tr>
@@ -611,12 +636,22 @@
       for (let i=0;i<empRows.length;i+=CHUNK) {
         const batch = empRows.slice(i, i+CHUNK);
         const { error } = await client.from('employees').upsert(batch, { onConflict: 'employee_code' });
-        if (error) { fail += batch.length; if(!firstError) firstError = error; console.error(error); }
+        if (error) { 
+          fail += batch.length; 
+          if(!firstError) firstError = error; 
+          console.error(error); 
+        }
         else { ok += batch.length; }
       }
-      if (firstError) { toast('นำเข้าไม่ครบ ดู Error Log', false); }
+      if (firstError) {
+        document.getElementById('empDebug').classList.remove('hidden');
+        document.getElementById('empErrorText').textContent = (firstError.message || JSON.stringify(firstError, null, 2));
+        if ((firstError.message||'').toLowerCase().includes('row level security')) {
+          document.getElementById('empErrorText').textContent += "\n\nคำแนะนำ: ตรวจสอบ RLS ของตาราง employees (ควรปิดระหว่างทดสอบ หรือสร้าง policy สำหรับ insert/update ด้วย anon)";
+        }
+        toast('นำเข้าไม่ครบ ดูข้อผิดพลาดด้านล่าง', false);
+      }
       toast(`นำเข้าพนักงานแล้ว ${ok.toLocaleString('th-TH')} แถว (พลาด ${fail.toLocaleString('th-TH')})`, ok>0 && !firstError);
-      // รีเฟรชแดชบอร์ดของวันนี้ (roster อาจเปลี่ยน)
       const today = new Date().toISOString().slice(0,10);
       await client.rpc('process_raw_scans', { p_from: today, p_to: today });
       await refreshDashboard();
@@ -625,7 +660,7 @@
     async function exportEmployees(fmt) {
       const cols = 'employee_code,full_name,department,position,is_active,hire_date,resign_date,email,phone,manager_code';
       const { data, error } = await client.from('employees').select(cols).order('employee_code');
-      if (error) { toast('อ่าน employees ล้มเหลว', false); return; }
+      if (error) { toast('อ่าน employees ล้มเหลว (อาจติด RLS)', false); return; }
       if (!data?.length) { toast('ไม่มีข้อมูลพนักงาน', false); return; }
 
       if (fmt === 'csv') {
@@ -655,7 +690,7 @@
         hire_date:'2025-01-01',
         resign_date:'',
         email:'emp001@example.com',
-        phone:'0800000001',
+        phone:'+66800000001',
         manager_code:'MGR01'
       }];
       const ws = XLSX.utils.json_to_sheet(sample, { header: headers });
@@ -675,7 +710,7 @@
 
     function downloadEmpErrors() {
       if (!empErrs.length) { toast('ไม่มี Error จากไฟล์ล่าสุด'); return; }
-      const csv = 'reason,raw_json\\n' + empErrs.map(e => `${e.reason},"${(JSON.stringify(e.row)||'').replace(/"/g,'""')}"`).join('\\n');
+      const csv = 'reason,raw_json\n' + empErrs.map(e => `${e.reason},"${(JSON.stringify(e.row)||'').replace(/"/g,'""')}"`).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       triggerDownload(url,'employee_import_errors.csv');
