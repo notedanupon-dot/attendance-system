@@ -4,23 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Attendance & Leave Review System</title>
+
+  <!-- Tailwind / Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- CSV/XLSX parsers -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Sarabun', sans-serif; }
     .sidebar-transition { transition: all 0.3s ease; }
     .card-hover { transition: all 0.2s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .modal-backdrop { backdrop-filter: blur(4px); }
     .kpi-bar { height:6px; border-radius:9999px; background:#f1f5f9; overflow:hidden }
     .kpi-bar>span { display:block; height:100%; background:#22c55e }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
+    .btn { @apply inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium; }
   </style>
 </head>
 <body class="bg-gray-50">
+  <!-- Topbar -->
   <nav class="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-50">
     <div class="px-6 py-4">
       <div class="flex items-center justify-between">
@@ -39,6 +49,7 @@
     </div>
   </nav>
 
+  <!-- Sidebar -->
   <aside id="sidebar" class="fixed left-0 top-16 h-full w-64 bg-white shadow-lg border-r border-gray-200 sidebar-transition z-40">
     <div class="p-6">
       <nav class="space-y-2">
@@ -53,7 +64,10 @@
     </div>
   </aside>
 
+  <!-- Main -->
   <main id="mainContent" class="ml-64 pt-16 min-h-screen sidebar-transition">
+
+    <!-- Dashboard -->
     <section id="dashboard-section" class="section-content p-6">
       <div class="mb-6">
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">แดชบอร์ดภาพรวม</h2>
@@ -94,6 +108,7 @@
       </div>
     </section>
 
+    <!-- Import -->
     <section id="import-section" class="section-content p-6 hidden">
       <h2 class="text-2xl font-semibold text-gray-900 mb-2">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
       <p class="text-gray-600 mb-6">อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class="mono">Person ID, Name, Department, Date, Check-In, Check-out</span></p>
@@ -137,8 +152,52 @@
           </div>
         </div>
       </div>
+
+      <!-- NEW: Employee Import/Export -->
+      <div class="bg-white rounded-xl shadow-sm p-8 mt-10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold text-gray-900">จัดการข้อมูลพนักงาน (employees)</h3>
+          <div class="flex gap-2">
+            <button id="empExportCsvBtn"  class="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800"><i class="fa fa-file-csv mr-2"></i>ส่งออก CSV</button>
+            <button id="empExportXlsxBtn" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"><i class="fa fa-file-excel mr-2"></i>ส่งออก XLSX</button>
+            <button id="empTemplateBtn"   class="bg-slate-100 text-slate-800 px-4 py-2 rounded-lg hover:bg-slate-200"><i class="fa fa-download mr-2"></i>ดาวน์โหลด Template</button>
+          </div>
+        </div>
+
+        <div class="border rounded-lg p-5 mb-6">
+          <div class="flex flex-wrap items-center gap-3">
+            <input type="file" id="empFileInput" class="hidden" accept=".csv,.xlsx,.xls" />
+            <button id="empChooseFileBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><i class="fa fa-upload mr-2"></i>เลือกไฟล์นำเข้า</button>
+            <span class="text-sm text-gray-500">รองรับ .csv / .xlsx / .xls</span>
+            <div class="ml-auto text-sm">พร้อมนำเข้า: <span id="empReadyCount" class="font-semibold text-green-600">0</span> แถว</div>
+            <button id="empImportBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50" disabled>นำเข้าพนักงาน</button>
+            <button id="empErrBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">ดาวน์โหลด Error Log</button>
+          </div>
+        </div>
+
+        <div id="empPreview" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">employee_code</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">full_name</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">department</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">position</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">is_active</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">hire_date</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">resign_date</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">email</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">phone</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">manager_code</th>
+              </tr>
+            </thead>
+            <tbody id="empPreviewTbody" class="bg-white divide-y divide-gray-200"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
+    <!-- Stubs -->
     <section id="attendance-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="leave-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="corrections-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไข</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
@@ -147,11 +206,13 @@
   </main>
 
   <script>
+    // ====== CONFIG Supabase ======
     const SUPABASE_URL = "https://ftapghebfvfxbtqojkfp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0YXBnaGViZnZmeGJ0cW9qa2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NDI2OTQsImV4cCI6MjA3MzIxODY5NH0.OEbaUGNAfC1HvWOQM9nptpPJuxB_vzi8GV7aFAd-L10";
     let client = null;
     if (window.supabase) client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // ====== Utils ======
     function toast(msg, ok = true) {
       const t = document.createElement('div');
       t.className = 'fixed bottom-6 right-6 ' + (ok ? 'bg-gray-900' : 'bg-red-600') + ' text-white px-4 py-3 rounded-lg shadow-lg';
@@ -178,6 +239,13 @@
       const d2 = new Date(s);
       return isNaN(d2) ? null : d2.toISOString().slice(0,10);
     }
+    function toBool(v) {
+      const s = (v ?? '').toString().trim().toLowerCase();
+      if (['true','1','yes','y','ใช่','active','เปิด','on'].includes(s)) return true;
+      if (['false','0','no','n','ไม่','inactive','ปิด','off'].includes(s)) return false;
+      return null;
+    }
+
     function combineISO(dateISO, timeStr) {
       if (!dateISO || isBlank(timeStr)) return null;
       const parts = String(timeStr).trim().split(':');
@@ -186,19 +254,14 @@
       const s = (parts[2]||'00').padStart(2,'0');
       return `${dateISO}T${h}:${m}:${s}Z`;
     }
-    function inferDirection(dir, dev) {
-      const s = (dir ?? '').toString().toUpperCase();
-      const d = (dev ?? '').toString().toUpperCase();
-      if (/(^|[^A-Z])IN([^A-Z]|$)/.test(s) || /ENTR(Y|ANCE)/.test(d) || /(^|[^A-Z])IN([^A-Z]|$)/.test(d)) return 'IN';
-      if (/(^|[^A-Z])OUT([^A-Z]|$)/.test(s) || /\bOUT\b/.test(d) || /EXIT/.test(d)) return 'OUT';
-      return null;
-    }
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = (val ?? '—'); }
 
+    // ====== DOM Ready ======
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('currentDate').textContent =
         new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
+      // Sidebar nav
       document.querySelectorAll('.nav-item').forEach(a => a.addEventListener('click', e => {
         e.preventDefault();
         document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
@@ -208,6 +271,7 @@
         if (a.dataset.section === 'dashboard') refreshDashboard();
       }));
 
+      // Attendance import bindings
       const uploadArea = document.getElementById('uploadArea');
       const fileInput  = document.getElementById('fileInput');
       if (uploadArea && fileInput) {
@@ -220,9 +284,14 @@
       }
       document.getElementById('importBtn')?.addEventListener('click', handleImport);
 
+      // Employee import/export bindings
+      bindEmployeeUI();
+
+      // โหลดแดชบอร์ดครั้งแรก
       await refreshDashboard();
     });
 
+    // ====== Attendance IMPORT (เหมือนเวอร์ชันก่อน) ======
     const COLUMN_MAP = {
       emp_id:    ['Person ID','Employee ID','EmployeeID','Emp No','Emp Code'],
       name:      ['Name','Full Name','FullName'],
@@ -237,7 +306,7 @@
       device:    ['Device','Door','Reader','Attendance Check Point','Custom Name','Device Name']
     };
 
-    let rowsToImport = [];
+    let rowsToImport = [];     // for raw_scans
     let errorRows = [];
     let importRange = { from: null, to: null };
 
@@ -315,7 +384,7 @@
           const tsVal = r[cols.timestamp] || r['Time'];
           const event_time = tsVal ? new Date(tsVal).toISOString() : null;
           const device        = clean(r[cols.device]);
-          const direction     = inferDirection(r[cols.direction], device) || 'IN';
+          const direction     = (r[cols.direction] || '').toString().toUpperCase().includes('OUT') ? 'OUT' : 'IN';
 
           if (event_time) {
             const d = event_time.slice(0,10);
@@ -330,6 +399,7 @@
 
       importRange = { from: minDate, to: maxDate };
 
+      // preview
       const tbody = document.getElementById('previewTableBody');
       tbody.innerHTML = rowsToImport.slice(0, 50).map(r => `
         <tr>
@@ -346,6 +416,7 @@
       document.getElementById('importErrorText').textContent = '';
     }
 
+    // ====== Import to Supabase (raw_scans) ======
     async function handleImport() {
       if (!rowsToImport.length) { toast('ยังไม่มีข้อมูลสำหรับนำเข้า', false); return; }
       if (!client) { toast('Supabase client ยังไม่พร้อม', false); return; }
@@ -366,15 +437,8 @@
 
       let fromStr = importRange.from, toStr = importRange.to;
       if (!fromStr || !toStr) {
-        if (rowsToImport.length) {
-          const dFrom = new Date(rowsToImport[0].event_time);
-          const dTo   = new Date(rowsToImport[rowsToImport.length-1].event_time);
-          fromStr = dFrom.toISOString().slice(0,10);
-          toStr   = dTo.toISOString().slice(0,10);
-        } else {
-          const today = new Date().toISOString().slice(0,10);
-          fromStr = toStr = today;
-        }
+        const today = new Date().toISOString().slice(0,10);
+        fromStr = toStr = today;
       }
       const rpc = await client.rpc('process_raw_scans', { p_from: fromStr, p_to: toStr });
       if (rpc.error) { console.error('process_raw_scans error:', rpc.error); firstError = firstError || rpc.error; }
@@ -388,6 +452,7 @@
       await refreshDashboard();
     }
 
+    // ====== Dashboard ======
     async function refreshDashboard() {
       try {
         const { data: latestRows } = await client
@@ -430,20 +495,191 @@
       }
     }
 
-    document.addEventListener('click', (e) => {
-      if (e.target && e.target.id === 'downloadErrorBtn') {
-        if (!errorRows.length) { toast('ไม่มีข้อผิดพลาดในไฟล์ล่าสุด'); return; }
-        const headers = ['reason','raw_json'];
-        const csv = [headers.join(',')].concat(errorRows.map(er => `${er.reason},"${(JSON.stringify(er.row) || '').replace(/"/g,'""')}"`)).join('\n');
+    // ====== EMPLOYEE Import/Export ======
+    const EMP_MAP = {
+      employee_code: ['employee_code','Employee Code','Emp Code','Emp No','Person ID','EmployeeID','Employee ID'],
+      full_name:     ['full_name','Full Name','Name'],
+      department:    ['department','Department','Dept','Division'],
+      position:      ['position','ตำแหน่ง','Job Title','Title'],
+      is_active:     ['is_active','Active','ใช้งาน'],
+      hire_date:     ['hire_date','Start Date','Hire Date','วันที่เริ่มงาน'],
+      resign_date:   ['resign_date','Resign Date','End Date','วันที่สิ้นสุด'],
+      email:         ['email','Email'],
+      phone:         ['phone','Phone','เบอร์โทร'],
+      manager_code:  ['manager_code','Manager Code','หัวหน้า']
+    };
+
+    let empRows = [];
+    let empErrs = [];
+
+    function bindEmployeeUI() {
+      const inp = document.getElementById('empFileInput');
+      document.getElementById('empChooseFileBtn').addEventListener('click', () => inp.click());
+      inp.addEventListener('change', async () => {
+        if (!inp.files?.length) return;
+        const f = inp.files[0];
+        const ext = (f.name.split('.').pop()||'').toLowerCase();
+        const raw = ext==='csv' ? await new Promise((res,rej)=>Papa.parse(f,{header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}))
+                  : (ext==='xlsx'||ext==='xls') ? await new Promise((res,rej)=>{ const rd=new FileReader(); rd.onload=e=>{ const wb=XLSX.read(e.target.result,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; res(XLSX.utils.sheet_to_json(ws,{defval:''}));}; rd.onerror=rej; rd.readAsArrayBuffer(f); })
+                  : null;
+        if (!raw) return toast('รองรับเฉพาะ .csv .xlsx .xls', false);
+        prepareEmpRows(raw);
+      });
+
+      document.getElementById('empImportBtn').addEventListener('click', importEmployees);
+      document.getElementById('empExportCsvBtn').addEventListener('click', () => exportEmployees('csv'));
+      document.getElementById('empExportXlsxBtn').addEventListener('click', () => exportEmployees('xlsx'));
+      document.getElementById('empErrBtn').addEventListener('click', downloadEmpErrors);
+      document.getElementById('empTemplateBtn').addEventListener('click', downloadEmpTemplate);
+    }
+
+    function headerResolve(row, map) {
+      const headers = Object.keys(row || {});
+      const ret = {};
+      for (const [k, aliases] of Object.entries(map)) {
+        ret[k] = headers.find(h => aliases.some(a => a.toLowerCase() === String(h).trim().toLowerCase())) || null;
+      }
+      return ret;
+    }
+
+    function prepareEmpRows(raw) {
+      empRows = []; empErrs = [];
+      if (!raw?.length) { toast('ไฟล์พนักงานว่างเปล่า', false); return; }
+      const cols = headerResolve(raw[0], EMP_MAP);
+
+      const seen = new Set();
+      for (const r of raw) {
+        const employee_code = clean(r[cols.employee_code]);
+        const full_name     = clean(r[cols.full_name]);
+        if (!employee_code || !full_name) { empErrs.push({ reason:'missing_code_or_name', row:r }); continue; }
+
+        const row = {
+          employee_code,
+          full_name,
+          department:  clean(r[cols.department]),
+          position:    clean(r[cols.position]),
+          is_active:   toBool(r[cols.is_active]),
+          hire_date:   parseDateSmart(r[cols.hire_date]),
+          resign_date: parseDateSmart(r[cols.resign_date]),
+          email:       clean(r[cols.email]),
+          phone:       clean(r[cols.phone]),
+          manager_code: clean(r[cols.manager_code])
+        };
+        // default is_active = true if null
+        if (row.is_active === null) row.is_active = true;
+
+        // dedup by last occurrence
+        seen.delete(row.employee_code);
+        seen.add(row.employee_code);
+        empRows.push(row);
+      }
+
+      // keep only last entry for duplicated codes
+      const filtered = [];
+      const keep = new Set(seen);
+      for (let i = empRows.length - 1; i >= 0; i--) {
+        const code = empRows[i].employee_code;
+        if (keep.has(code)) { filtered.unshift(empRows[i]); keep.delete(code); }
+      }
+      empRows = filtered;
+
+      // render preview
+      const tb = document.getElementById('empPreviewTbody');
+      tb.innerHTML = empRows.slice(0, 100).map(e => `
+        <tr>
+          <td class="px-4 py-2 text-sm">${e.employee_code||''}</td>
+          <td class="px-4 py-2 text-sm">${e.full_name||''}</td>
+          <td class="px-4 py-2 text-sm">${e.department||''}</td>
+          <td class="px-4 py-2 text-sm">${e.position||''}</td>
+          <td class="px-4 py-2 text-sm">${e.is_active}</td>
+          <td class="px-4 py-2 text-sm">${e.hire_date||''}</td>
+          <td class="px-4 py-2 text-sm">${e.resign_date||''}</td>
+          <td class="px-4 py-2 text-sm">${e.email||''}</td>
+          <td class="px-4 py-2 text-sm">${e.phone||''}</td>
+          <td class="px-4 py-2 text-sm">${e.manager_code||''}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('empReadyCount').textContent = empRows.length.toLocaleString('th-TH');
+      document.getElementById('empImportBtn').disabled = empRows.length === 0;
+    }
+
+    async function importEmployees() {
+      if (!empRows.length) { toast('ไม่มีข้อมูลพนักงานสำหรับนำเข้า', false); return; }
+      const CHUNK = 500;
+      let ok=0, fail=0, firstError=null;
+      for (let i=0;i<empRows.length;i+=CHUNK) {
+        const batch = empRows.slice(i, i+CHUNK);
+        const { error } = await client.from('employees').upsert(batch, { onConflict: 'employee_code' });
+        if (error) { fail += batch.length; if(!firstError) firstError = error; console.error(error); }
+        else { ok += batch.length; }
+      }
+      if (firstError) { toast('นำเข้าไม่ครบ ดู Error Log', false); }
+      toast(`นำเข้าพนักงานแล้ว ${ok.toLocaleString('th-TH')} แถว (พลาด ${fail.toLocaleString('th-TH')})`, ok>0 && !firstError);
+      // รีเฟรชแดชบอร์ดของวันนี้ (roster อาจเปลี่ยน)
+      const today = new Date().toISOString().slice(0,10);
+      await client.rpc('process_raw_scans', { p_from: today, p_to: today });
+      await refreshDashboard();
+    }
+
+    async function exportEmployees(fmt) {
+      const cols = 'employee_code,full_name,department,position,is_active,hire_date,resign_date,email,phone,manager_code';
+      const { data, error } = await client.from('employees').select(cols).order('employee_code');
+      if (error) { toast('อ่าน employees ล้มเหลว', false); return; }
+      if (!data?.length) { toast('ไม่มีข้อมูลพนักงาน', false); return; }
+
+      if (fmt === 'csv') {
+        const csv = Papa.unparse(data, { columns: cols.split(',') });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'import_errors.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+        triggerDownload(url, 'employees.csv');
+      } else {
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'employees');
+        const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([out], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        triggerDownload(url, 'employees.xlsx');
       }
-    });
+    }
+
+    function downloadEmpTemplate() {
+      const headers = ['employee_code','full_name','department','position','is_active','hire_date','resign_date','email','phone','manager_code'];
+      const sample = [{
+        employee_code:'EMP001',
+        full_name:'สมชาย ใจดี',
+        department:'Assembly',
+        position:'Operator',
+        is_active:true,
+        hire_date:'2025-01-01',
+        resign_date:'',
+        email:'emp001@example.com',
+        phone:'0800000001',
+        manager_code:'MGR01'
+      }];
+      const ws = XLSX.utils.json_to_sheet(sample, { header: headers });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'template');
+      const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([out], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, 'employees_template.xlsx');
+    }
+
+    function triggerDownload(url, filename) {
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    }
+
+    function downloadEmpErrors() {
+      if (!empErrs.length) { toast('ไม่มี Error จากไฟล์ล่าสุด'); return; }
+      const csv = 'reason,raw_json\\n' + empErrs.map(e => `${e.reason},"${(JSON.stringify(e.row)||'').replace(/"/g,'""')}"`).join('\\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url,'employee_import_errors.csv');
+    }
   </script>
 </body>
 </html>
