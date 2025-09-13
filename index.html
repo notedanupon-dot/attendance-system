@@ -91,6 +91,31 @@
           <div class="kpi-bar mt-4"><span id="scan-bar" style="width:0%"></span></div>
           <p class="text-xs text-gray-500 mt-2"><span data-i18n="kpi_scan_meta_prefix">พนักงานทั้งหมด:</span> <span id="stat-total-emp">—</span> <span data-i18n="people">คน</span> | <span data-i18n="scanned">มีสแกน:</span> <span id="stat-scanned">—</span> <span data-i18n="people">คน</span></p>
         </div>
+      <!-- Absent detail table -->
+      <div id="absent-detail" class="bg-white rounded-xl shadow-sm p-6 mt-2 hidden">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold text-gray-900">รายชื่อขาดงาน (ไม่มี Check-in)</h3>
+          <div class="text-sm text-gray-600">
+            วันที่: <span id="absentDate">—</span> • รวม <span id="absentCount">0</span> คน
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">แผนก</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">รหัสพนักงาน</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">ชื่อ-สกุล</th>
+              </tr>
+            </thead>
+            <tbody id="absentTBody" class="divide-y divide-gray-100 bg-white"></tbody>
+          </table>
+        </div>
+        <div class="mt-3 text-right">
+          <button id="absentCloseBtn" class="px-3 py-2 rounded-lg border hover:bg-gray-50">ซ่อนตาราง</button>
+        </div>
+      </div>
+
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
           <p class="text-sm font-medium text-gray-600" data-i18n="kpi_late">มาสาย</p>
           <div class="flex items-end justify-between mt-2">
@@ -98,7 +123,7 @@
             <div class="bg-yellow-100 p-3 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div>
           </div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover cursor-pointer" id="kpi-card-absent"">
           <p class="text-sm font-medium text-gray-600" data-i18n="kpi_absent">ขาดงาน</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-red-600"><span id="stat-absent">—</span></p>
@@ -909,6 +934,89 @@ document.addEventListener('DOMContentLoaded', () => {
       if(lang) { try { applyI18n(lang); } catch(e){} }
     });
   }
+});
+
+// ===== Absent detail (no check-in) =====
+async function getActiveWorkDate() {
+  // try known date inputs, fallback to latest work_date
+  const ids = ['deptDate','dateInput','dateFilter'];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el && el.value) return el.value;
+  }
+  try {
+    const { data, error } = await client
+      .from('attendance_days')
+      .select('work_date')
+      .order('work_date', { ascending: false })
+      .limit(1);
+    if (!error && data && data.length) return data[0].work_date;
+  } catch(e){}
+  // fallback today
+  return new Date().toISOString().slice(0,10);
+}
+
+async function loadAbsentDetail() {
+  const date = await getActiveWorkDate();
+  const tbody = document.getElementById('absentTBody');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">กำลังโหลดข้อมูล...</td></tr>`;
+  document.getElementById('absentDate').textContent = date;
+
+  const { data, error } = await client
+    .from('attendance_days')
+    .select('department, employee_code, full_name')
+    .eq('work_date', date)
+    .eq('status', 'absent')
+    .order('department', { ascending: true })
+    .order('employee_code', { ascending: true })
+    .limit(10000);
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-red-600">โหลดข้อมูลไม่สำเร็จ</td></tr>`;
+    console.error(error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-3 text-gray-500">ไม่มีผู้ขาดงาน</td></tr>`;
+    document.getElementById('absentCount').textContent = 0;
+  } else {
+    document.getElementById('absentCount').textContent = data.length;
+    const rows = data.map(r => `
+      <tr>
+        <td class="px-3 py-2">${r.department || '-'}</td>
+        <td class="px-3 py-2">${r.employee_code || '-'}</td>
+        <td class="px-3 py-2">${r.full_name || '-'}</td>
+      </tr>
+    `).join('');
+    tbody.innerHTML = rows;
+  }
+
+  const box = document.getElementById('absent-detail');
+  if (box) {
+    box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function hideAbsentDetail(){
+  const box = document.getElementById('absent-detail');
+  if (box) box.classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Click KPI "Absent"
+  const label = document.querySelector('[data-i18n="kpi_absent"]');
+  let card = label ? label.closest('.card-hover') : null;
+  const explicit = document.getElementById('kpi-card-absent');
+  if (explicit) card = explicit;
+  if (card) {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', loadAbsentDetail);
+  }
+  // Close button
+  document.getElementById('absentCloseBtn')?.addEventListener('click', hideAbsentDetail);
 });
 </script>
 </body>
