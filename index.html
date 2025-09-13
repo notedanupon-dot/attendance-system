@@ -4,32 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Attendance & Leave Review System</title>
-
-  <!-- Tailwind / Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
-  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- CSV/XLSX parsers -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Sarabun', sans-serif; }
     .sidebar-transition { transition: all 0.3s ease; }
     .card-hover { transition: all 0.2s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-    .modal-backdrop { backdrop-filter: blur(4px); }
     .kpi-bar { height:6px; border-radius:9999px; background:#f1f5f9; overflow:hidden }
     .kpi-bar>span { display:block; height:100%; background:#22c55e }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
   </style>
 </head>
 <body class="bg-gray-50">
-  <!-- Topbar -->
   <nav class="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-50">
     <div class="px-6 py-4">
       <div class="flex items-center justify-between">
@@ -48,7 +39,6 @@
     </div>
   </nav>
 
-  <!-- Sidebar -->
   <aside id="sidebar" class="fixed left-0 top-16 h-full w-64 bg-white shadow-lg border-r border-gray-200 sidebar-transition z-40">
     <div class="p-6">
       <nav class="space-y-2">
@@ -63,10 +53,7 @@
     </div>
   </aside>
 
-  <!-- Main -->
   <main id="mainContent" class="ml-64 pt-16 min-h-screen sidebar-transition">
-
-    <!-- Dashboard -->
     <section id="dashboard-section" class="section-content p-6">
       <div class="mb-6">
         <h2 class="text-2xl font-semibold text-gray-900 mb-2">แดชบอร์ดภาพรวม</h2>
@@ -107,7 +94,6 @@
       </div>
     </section>
 
-    <!-- Import -->
     <section id="import-section" class="section-content p-6 hidden">
       <h2 class="text-2xl font-semibold text-gray-900 mb-2">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
       <p class="text-gray-600 mb-6">อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class="mono">Person ID, Name, Department, Date, Check-In, Check-out</span></p>
@@ -153,7 +139,6 @@
       </div>
     </section>
 
-    <!-- Stubs -->
     <section id="attendance-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="leave-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="corrections-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไข</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
@@ -162,13 +147,11 @@
   </main>
 
   <script>
-    // ====== CONFIG Supabase ======
     const SUPABASE_URL = "https://ftapghebfvfxbtqojkfp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0YXBnaGViZnZmeGJ0cW9qa2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NDI2OTQsImV4cCI6MjA3MzIxODY5NH0.OEbaUGNAfC1HvWOQM9nptpPJuxB_vzi8GV7aFAd-L10";
     let client = null;
     if (window.supabase) client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ====== Utils ======
     function toast(msg, ok = true) {
       const t = document.createElement('div');
       t.className = 'fixed bottom-6 right-6 ' + (ok ? 'bg-gray-900' : 'bg-red-600') + ' text-white px-4 py-3 rounded-lg shadow-lg';
@@ -182,19 +165,16 @@
     function parseDateSmart(s) {
       if (!s) return null;
       s = String(s).trim();
-      // yyyy-mm-dd
       if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)) {
         const [y,m,d] = s.split('-').map(n => n.padStart(2,'0'));
         return `${y}-${m}-${d}`;
       }
-      // dd-mm-yy OR dd-mm-yyyy OR dd/mm/yy
       let m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2}|\d{4})$/);
       if (m) {
         let [_, d, mo, y] = m;
         if (y.length === 2) y = (Number(y) >= 70 ? '19' : '20') + y;
         return `${y.padStart(4,'0')}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`;
       }
-      // fallback
       const d2 = new Date(s);
       return isNaN(d2) ? null : d2.toISOString().slice(0,10);
     }
@@ -215,12 +195,10 @@
     }
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = (val ?? '—'); }
 
-    // ====== DOM Ready ======
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('currentDate').textContent =
         new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      // Sidebar nav
       document.querySelectorAll('.nav-item').forEach(a => a.addEventListener('click', e => {
         e.preventDefault();
         document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
@@ -230,7 +208,6 @@
         if (a.dataset.section === 'dashboard') refreshDashboard();
       }));
 
-      // Upload bindings
       const uploadArea = document.getElementById('uploadArea');
       const fileInput  = document.getElementById('fileInput');
       if (uploadArea && fileInput) {
@@ -243,11 +220,9 @@
       }
       document.getElementById('importBtn')?.addEventListener('click', handleImport);
 
-      // โหลดแดชบอร์ดครั้งแรก
       await refreshDashboard();
     });
 
-    // ====== Column map for the attached file ======
     const COLUMN_MAP = {
       emp_id:    ['Person ID','Employee ID','EmployeeID','Emp No','Emp Code'],
       name:      ['Name','Full Name','FullName'],
@@ -256,14 +231,13 @@
       check_in:  ['Check-In','Check In','Time In','In','เวลาเข้า','Check-in'],
       check_out: ['Check-out','Check Out','Time Out','Out','เวลาออก','Check-out Time']
     };
-    // (รองรับโหมด RAW ด้วย เพื่อความยืดหยุ่น)
     const RAW_MAP = {
       timestamp: ['Time','Datetime','DateTime','Event Time','เวลา'],
       direction: ['Direction','Event','IN/OUT','Attendance Status','Status'],
       device:    ['Device','Door','Reader','Attendance Check Point','Custom Name','Device Name']
     };
 
-    let rowsToImport = [];     // flattened as raw_scans rows
+    let rowsToImport = [];
     let errorRows = [];
     let importRange = { from: null, to: null };
 
@@ -307,7 +281,6 @@
 
     function handleParsedRows(rawRows) {
       if (!rawRows?.length) { toast('ไม่พบข้อมูลในไฟล์', false); return; }
-      // ลองจับแบบ "รายวัน"
       let cols = resolveColumns(rawRows[0], COLUMN_MAP);
       const isDayMode = !!(cols.date && (cols.check_in || cols.check_out));
 
@@ -329,25 +302,18 @@
           }
           if (!employee_code) { errorRows.push({ reason:'missing_employee_code', row:r }); continue; }
 
-          if (!inIso && !outIso) {
-            // ไม่มี check-in/out -> ให้ RPC นับ absent จากตาราง employees
-            continue;
-          }
-          if (inIso) {
-            rowsToImport.push({ event_time: inIso, employee_code, full_name, department, direction: 'IN', device: 'UPLOAD:CHECKIN' });
-          }
-          if (outIso) {
-            rowsToImport.push({ event_time: outIso, employee_code, full_name, department, direction: 'OUT', device: 'UPLOAD:CHECKOUT' });
-          }
+          if (!inIso && !outIso) continue;
+          if (inIso)  rowsToImport.push({ event_time: inIso,  employee_code, full_name, department, direction: 'IN',  device: 'UPLOAD:CHECKIN' });
+          if (outIso) rowsToImport.push({ event_time: outIso, employee_code, full_name, department, direction: 'OUT', device: 'UPLOAD:CHECKOUT' });
         }
       } else {
-        // ลองโหมด RAW logs
         cols = { ...resolveColumns(rawRows[0], COLUMN_MAP), ...resolveColumns(rawRows[0], RAW_MAP) };
         for (const r of rawRows) {
           const employee_code = clean(r[cols.emp_id]);
           const full_name     = clean(r[cols.name]);
           const department    = clean(r[cols.dept]);
-          const event_time    = isBlank(r[RAW_MAP.timestamp?.[0]]) ? null : new Date(r[cols.timestamp] || r['Time']).toISOString();
+          const tsVal = r[cols.timestamp] || r['Time'];
+          const event_time = tsVal ? new Date(tsVal).toISOString() : null;
           const device        = clean(r[cols.device]);
           const direction     = inferDirection(r[cols.direction], device) || 'IN';
 
@@ -364,7 +330,6 @@
 
       importRange = { from: minDate, to: maxDate };
 
-      // preview
       const tbody = document.getElementById('previewTableBody');
       tbody.innerHTML = rowsToImport.slice(0, 50).map(r => `
         <tr>
@@ -381,7 +346,6 @@
       document.getElementById('importErrorText').textContent = '';
     }
 
-    // ====== Import to Supabase ======
     async function handleImport() {
       if (!rowsToImport.length) { toast('ยังไม่มีข้อมูลสำหรับนำเข้า', false); return; }
       if (!client) { toast('Supabase client ยังไม่พร้อม', false); return; }
@@ -400,7 +364,6 @@
         } else { ok += batch.length; }
       }
 
-      // Process to attendance_days for the import date range
       let fromStr = importRange.from, toStr = importRange.to;
       if (!fromStr || !toStr) {
         if (rowsToImport.length) {
@@ -422,14 +385,11 @@
       }
       toast(`นำเข้าแล้ว ${ok.toLocaleString('th-TH')} รายการ (พลาด ${fail.toLocaleString('th-TH')})`, ok > 0 && !firstError);
 
-      // refresh dashboard
       await refreshDashboard();
     }
 
-    // ====== Dashboard ======
     async function refreshDashboard() {
       try {
-        // วันล่าสุดที่มีข้อมูลใน raw_scans
         const { data: latestRows } = await client
           .from('raw_scans')
           .select('event_time')
@@ -438,26 +398,18 @@
         const latestDay = latestRows?.[0] ? new Date(latestRows[0].event_time).toISOString().slice(0,10)
                                           : new Date().toISOString().slice(0,10);
 
-        // เรียกสรุปเพื่อกันพลาด
         await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay });
 
-        // จำนวนพนักงานทั้งหมด
-        let totalEmp = 0;
-        const totalRes = await client.from('employees').select('employee_code', { count: 'exact', head: true });
-        if (!totalRes.error) totalEmp = totalRes.count || 0;
-        if (!totalEmp) {
-          const { data: empList } = await client.from('attendance_days').select('employee_code').eq('work_date', latestDay);
-          totalEmp = new Set((empList || []).map(x => x.employee_code)).size;
-        }
+        const { data: empDay } = await client.from('attendance_days').select('employee_code').eq('work_date', latestDay);
+        const totalEmp = new Set((empDay || []).map(x => x.employee_code)).size;
 
-        // สถานะของวันล่าสุด
         const { data: dayRows } = await client.from('attendance_days')
-          .select('status,check_in,check_out')
+          .select('status')
           .eq('work_date', latestDay);
         const counts = { present:0, late:0, absent:0, missing_out:0 };
         (dayRows || []).forEach(r => counts[r.status] = (counts[r.status] || 0) + 1);
 
-        const scanned = totalEmp ? (totalEmp - counts.absent) : (dayRows || []).length;
+        const scanned = totalEmp ? (totalEmp - counts.absent) : 0;
         const rate = totalEmp ? Math.round((scanned / totalEmp) * 100) : 0;
 
         setText('stat-total-emp', totalEmp);
@@ -467,7 +419,6 @@
         setText('stat-late', counts.late || 0);
         setText('stat-absent', counts.absent || 0);
 
-        // คำขอรออนุมัติ
         let pending = 0;
         const cr = await client.from('time_corrections').select('id', { count: 'exact', head: true }).eq('status', 'pending');
         if (!cr.error && cr.count) pending += cr.count;
@@ -479,12 +430,11 @@
       }
     }
 
-    // ====== Error log download ======
     document.addEventListener('click', (e) => {
       if (e.target && e.target.id === 'downloadErrorBtn') {
         if (!errorRows.length) { toast('ไม่มีข้อผิดพลาดในไฟล์ล่าสุด'); return; }
         const headers = ['reason','raw_json'];
-        const csv = [headers.join(',')].concat(errorRows.map(er => `${er.reason},"${(JSON.stringify(er.row) || '').replace(/"/g,'""')}"`)).join('\\n');
+        const csv = [headers.join(',')].concat(errorRows.map(er => `${er.reason},"${(JSON.stringify(er.row) || '').replace(/"/g,'""')}"`)).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
