@@ -35,13 +35,18 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <button id="sidebarToggle" class="text-gray-600 hover:text-gray-900"><i class="fas fa-bars text-xl"></i></button>
-          <h1 class="text-xl font-semibold text-gray-900">ระบบจัดการเวลาเข้างานและการลา</h1>
+          <h1 class="text-xl font-semibold text-gray-900" data-i18n="app_title">ระบบจัดการเวลาเข้างานและการลา</h1>
         </div>
         <div class="flex items-center space-x-4">
           <div class="text-sm text-gray-600"><i class="fas fa-calendar-alt mr-2"></i><span id="currentDate"></span></div>
           <div class="flex items-center space-x-2">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234F46E5'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-size='12' font-weight='bold'%3EHR%3C/text%3E%3C/svg%3E" class="w-8 h-8 rounded-full" alt="User">
             <span class="text-sm font-medium text-gray-700">HR Admin</span>
+          <div class="ml-4 flex items-center gap-1" id="langSwitch">
+            <button class="px-2 py-1 rounded-md border text-sm hover:bg-gray-100" data-lang="th" title="ภาษาไทย">🇹🇭 TH</button>
+            <button class="px-2 py-1 rounded-md border text-sm hover:bg-gray-100" data-lang="en" title="English">🇬🇧 EN</button>
+            <button class="px-2 py-1 rounded-md border text-sm hover:bg-gray-100" data-lang="ja" title="日本語">🇯🇵 JA</button>
+          </div>
           </div>
         </div>
       </div>
@@ -52,13 +57,13 @@
   <aside id="sidebar" class="fixed left-0 top-16 h-full w-64 bg-white shadow-lg border-r border-gray-200 sidebar-transition z-40">
     <div class="p-6">
       <nav class="space-y-2">
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 bg-blue-50 text-blue-700" data-section="dashboard"><i class="fas fa-chart-pie mr-3 text-lg"></i><span>แดชบอร์ด</span></a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="import"><i class="fas fa-upload mr-3 text-lg"></i><span>นำเข้าข้อมูล</span></a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="attendance"><i class="fas fa-clock mr-3 text-lg"></i><span>ตรวจสอบเวลาเข้างาน</span></a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="leave"><i class="fas fa-calendar-times mr-3 text-lg"></i><span>จัดการการลา</span></a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="corrections"><i class="fas fa-edit mr-3 text-lg"></i><span>คำขอแก้ไข</span></a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="reports"><i class="fas fa-file-alt mr-3 text-lg"></i><span>รายงาน</span></a>
-        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="settings"><i class="fas fa-cog mr-3 text-lg"></i><span>ตั้งค่าระบบ</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 bg-blue-50 text-blue-700" data-section="dashboard"><i class="fas fa-chart-pie mr-3 text-lg"></i><span><span data-i18n="menu_dashboard">แดชบอร์ด</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="import"><i class="fas fa-upload mr-3 text-lg"></i><span><span data-i18n="menu_import">นำเข้าข้อมูล</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="attendance"><i class="fas fa-clock mr-3 text-lg"></i><span><span data-i18n="menu_attendance">ตรวจสอบเวลาเข้างาน</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="leave"><i class="fas fa-calendar-times mr-3 text-lg"></i><span><span data-i18n="menu_leave">จัดการการลา</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="corrections"><i class="fas fa-edit mr-3 text-lg"></i><span><span data-i18n="menu_corrections">คำขอแก้ไข</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="reports"><i class="fas fa-file-alt mr-3 text-lg"></i><span><span data-i18n="menu_reports">รายงาน</span></a>
+        <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100" data-section="settings"><i class="fas fa-cog mr-3 text-lg"></i><span><span data-i18n="menu_settings">ตั้งค่าระบบ</span></a>
       </nav>
     </div>
   </aside>
@@ -69,79 +74,79 @@
     <!-- Dashboard -->
     <section id="dashboard-section" class="section-content p-6">
       <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">แดชบอร์ดภาพรวม</h2>
-        <p class="text-gray-600">สรุปข้อมูลเวลาเข้างานและการลาประจำวัน</p>
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2" data-i18n="dashboard_title">แดชบอร์ดภาพรวม</h2>
+        <p class="text-gray-600" data-i18n="dashboard_subtitle">สรุปข้อมูลเวลาเข้างานและการลาประจำวัน</p>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <p class="text-sm font-medium text-gray-600">อัตราการสแกนสำเร็จ</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_scan_rate">อัตราการสแกนสำเร็จ</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-green-600"><span id="stat-scan-rate">—</span>%</p>
             <div class="bg-green-100 p-3 rounded-full"><i class="fas fa-check-circle text-green-600 text-xl"></i></div>
           </div>
           <div class="kpi-bar mt-4"><span id="scan-bar" style="width:0%"></span></div>
-          <p class="text-xs text-gray-500 mt-2">พนักงานทั้งหมด: <span id="stat-total-emp">—</span> คน | มีสแกน: <span id="stat-scanned">—</span> คน</p>
+          <p class="text-xs text-gray-500 mt-2"><span data-i18n="kpi_scan_meta_prefix">พนักงานทั้งหมด:</span> <span id="stat-total-emp">—</span> <span data-i18n="people">คน</span> | <span data-i18n="scanned">มีสแกน:</span> <span id="stat-scanned">—</span> <span data-i18n="people">คน</span></p>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <p class="text-sm font-medium text-gray-600">มาสาย</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_late">มาสาย</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-yellow-600"><span id="stat-late">—</span></p>
             <div class="bg-yellow-100 p-3 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <p class="text-sm font-medium text-gray-600">ขาดงาน</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_absent">ขาดงาน</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-red-600"><span id="stat-absent">—</span></p>
             <div class="bg-red-100 p-3 rounded-full"><i class="fas fa-user-times text-red-600 text-xl"></i></div>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <p class="text-sm font-medium text-gray-600">คำขอรออนุมัติ</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_pending">คำขอรออนุมัติ</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-orange-600"><span id="stat-pending">—</span></p>
             <div class="bg-orange-100 p-3 rounded-full"><i class="fas fa-hourglass-half text-orange-600 text-xl"></i></div>
           </div>
-          <p class="text-xs text-gray-500 mt-2">แก้ไขเวลา + คำขอลา (pending)</p>
+          <p class="text-xs text-gray-500 mt-2" data-i18n="pending_note">แก้ไขเวลา + คำขอลา (pending)</p>
         </div>
       </div>
     </section>
 
     <!-- Import -->
     <section id="import-section" class="section-content p-6 hidden">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-2">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
-      <p class="text-gray-600 mb-6">อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class="mono">Person ID, Name, Department, Date, Check-In, Check-out</span></p>
+      <h2 class="text-2xl font-semibold text-gray-900 mb-2" data-i18n="import_title">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
+      <p class="text-gray-600 mb-6" data-i18n="import_subtitle">อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class="mono">Person ID, Name, Department, Date, Check-In, Check-out</span></p>
       <div class="bg-white rounded-xl shadow-sm p-8 mb-6">
         <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors cursor-pointer">
           <div class="mb-4"><i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i></div>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h3>
-          <p class="text-gray-600 mb-4">รองรับไฟล์ .csv .xlsx .xls ขนาดไม่เกิน 10MB</p>
+          <h3 class="text-lg font-medium text-gray-900 mb-2" data-i18n="drop_here">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h3>
+          <p class="text-gray-600 mb-4" data-i18n="accept_hint">รองรับไฟล์ .csv .xlsx .xls ขนาดไม่เกิน 10MB</p>
           <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls">
-          <button id="chooseFileBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">เลือกไฟล์</button>
+          <button id="chooseFileBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"><span data-i18n="choose_file">เลือกไฟล์</span></button>
         </div>
       </div>
       <div id="filePreview" class="bg-white rounded-xl shadow-sm p-6 hidden">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">ตัวอย่างข้อมูล (50 แถวแรก)</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="preview_title">ตัวอย่างข้อมูล (50 แถวแรก)</h3>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลา</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสพนักงาน</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ประเภท</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">อุปกรณ์</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><span data-i18n="th_time">เวลา</span></th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><span data-i18n="th_empcode">รหัสพนักงาน</span></th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><span data-i18n="th_name">ชื่อ</span></th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><span data-i18n="th_dept">แผนก</span></th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><span data-i18n="th_type">ประเภท</span></th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><span data-i18n="th_device">อุปกรณ์</span></th>
               </tr>
             </thead>
             <tbody id="previewTableBody" class="bg-white divide-y divide-gray-200"></tbody>
           </table>
         </div>
         <div class="mt-6 flex justify-between items-center">
-          <div class="text-sm text-gray-600"><span id="readyCount" class="font-medium text-green-600">0</span> รายการพร้อมนำเข้า</div>
+          <div class="text-sm text-gray-600"><span id="readyCount" class="font-medium text-green-600">0</span> <span data-i18n="rows_ready">รายการพร้อมนำเข้า</span></div>
           <div class="space-x-3">
-            <button id="downloadErrorBtn" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">ดาวน์โหลด Error Log</button>
-            <button id="importBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">นำเข้าข้อมูล</button>
+            <button id="downloadErrorBtn" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700"><span data-i18n="download_error">ดาวน์โหลด Error Log</span></button>
+            <button id="importBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"><span data-i18n="import_btn">นำเข้าข้อมูล</span></button>
           </div>
         </div>
         <div id="importDebug" class="mt-4 hidden">
@@ -155,22 +160,22 @@
       <!-- Employee Import/Export -->
       <div class="bg-white rounded-xl shadow-sm p-8 mt-10">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-semibold text-gray-900">จัดการข้อมูลพนักงาน (employees)</h3>
+          <h3 class="text-xl font-semibold text-gray-900" data-i18n="emp_title">จัดการข้อมูลพนักงาน (employees)</h3>
           <div class="flex gap-2">
-            <button id="empExportCsvBtn"  class="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800"><i class="fa fa-file-csv mr-2"></i>ส่งออก CSV</button>
-            <button id="empExportXlsxBtn" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"><i class="fa fa-file-excel mr-2"></i>ส่งออก XLSX</button>
-            <button id="empTemplateBtn"   class="bg-slate-100 text-slate-800 px-4 py-2 rounded-lg hover:bg-slate-200"><i class="fa fa-download mr-2"></i>ดาวน์โหลด Template</button>
+            <button id="empExportCsvBtn"  class="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800"><i class="fa fa-file-csv mr-2"></i><span data-i18n="export_csv">ส่งออก CSV</span></button>
+            <button id="empExportXlsxBtn" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"><i class="fa fa-file-excel mr-2"></i><span data-i18n="export_xlsx">ส่งออก XLSX</span></button>
+            <button id="empTemplateBtn"   class="bg-slate-100 text-slate-800 px-4 py-2 rounded-lg hover:bg-slate-200"><i class="fa fa-download mr-2"></i><span data-i18n="download_template">ดาวน์โหลด Template</span></button>
           </div>
         </div>
 
         <div class="border rounded-lg p-5 mb-6">
           <div class="flex flex-wrap items-center gap-3">
             <input type="file" id="empFileInput" class="hidden" accept=".csv,.xlsx,.xls" />
-            <button id="empChooseFileBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><i class="fa fa-upload mr-2"></i>เลือกไฟล์นำเข้า</button>
-            <span class="text-sm text-gray-500">รองรับ .csv / .xlsx / .xls</span>
-            <div class="ml-auto text-sm">พร้อมนำเข้า: <span id="empReadyCount" class="font-semibold text-green-600">0</span> แถว</div>
-            <button id="empImportBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50" disabled>นำเข้าพนักงาน</button>
-            <button id="empErrBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">ดาวน์โหลด Error Log</button>
+            <button id="empChooseFileBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><i class="fa fa-upload mr-2"></i><span data-i18n="choose_emp_file">เลือกไฟล์นำเข้า</span></button>
+            <span class="text-sm text-gray-500"><span data-i18n="support_formats">รองรับ .csv / .xlsx / .xls</span>
+            <div class="ml-auto text-sm"><span data-i18n="ready_to_import">พร้อมนำเข้า:</span> <span id="empReadyCount" class="font-semibold text-green-600">0</span> แถว</div>
+            <button id="empImportBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50" disabled><span data-i18n="import_emp">นำเข้าพนักงาน</span></button>
+            <button id="empErrBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"><span data-i18n="download_error">ดาวน์โหลด Error Log</span></button>
           </div>
         </div>
 
@@ -197,7 +202,7 @@
         <!-- DB error for employee import -->
         <div id="empDebug" class="mt-4 hidden">
           <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
-            <div class="font-semibold mb-1">รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)</div>
+            <div class="font-semibold mb-1"><span data-i18n="emp_db_error">รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)</span></div>
             <pre id="empErrorText" class="text-xs overflow-auto whitespace-pre-wrap"></pre>
           </div>
         </div>
@@ -715,6 +720,179 @@
       const url = URL.createObjectURL(blob);
       triggerDownload(url,'employee_import_errors.csv');
     }
+// ===== i18n (TH/EN/JA) =====
+const I18N = {
+  th: {
+    title: "Attendance & Leave Review System",
+    app_title: "ระบบจัดการเวลาเข้างานและการลา",
+    menu_dashboard: "แดชบอร์ด",
+    menu_import: "นำเข้าข้อมูล",
+    menu_attendance: "ตรวจสอบเวลาเข้างาน",
+    menu_leave: "จัดการการลา",
+    menu_corrections: "คำขอแก้ไข",
+    menu_reports: "รายงาน",
+    menu_settings: "ตั้งค่าระบบ",
+    dashboard_title: "แดชบอร์ดภาพรวม",
+    dashboard_subtitle: "สรุปข้อมูลเวลาเข้างานและการลาประจำวัน",
+    kpi_scan_rate: "อัตราการสแกนสำเร็จ",
+    kpi_scan_meta_prefix: "พนักงานทั้งหมด:",
+    people: "คน",
+    scanned: "มีสแกน:",
+    kpi_late: "มาสาย",
+    kpi_absent: "ขาดงาน",
+    kpi_pending: "คำขอรออนุมัติ",
+    pending_note: "แก้ไขเวลา + คำขอลา (pending)",
+    import_title: "นำเข้าข้อมูลจาก iVMS4200-AC",
+    import_subtitle: "อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
+    drop_here: "ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์",
+    accept_hint: "รองรับไฟล์ .csv .xlsx .xls ขนาดไม่เกิน 10MB",
+    choose_file: "เลือกไฟล์",
+    preview_title: "ตัวอย่างข้อมูล (50 แถวแรก)",
+    th_time: "เวลา",
+    th_empcode: "รหัสพนักงาน",
+    th_name: "ชื่อ",
+    th_dept: "แผนก",
+    th_type: "ประเภท",
+    th_device: "อุปกรณ์",
+    rows_ready: "รายการพร้อมนำเข้า",
+    download_error: "ดาวน์โหลด Error Log",
+    import_btn: "นำเข้าข้อมูล",
+    emp_title: "จัดการข้อมูลพนักงาน (employees)",
+    export_csv: "ส่งออก CSV",
+    export_xlsx: "ส่งออก XLSX",
+    download_template: "ดาวน์โหลด Template",
+    choose_emp_file: "เลือกไฟล์นำเข้า",
+    support_formats: "รองรับ .csv / .xlsx / .xls",
+    ready_to_import: "พร้อมนำเข้า:",
+    import_emp: "นำเข้าพนักงาน",
+    emp_db_error: "รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)"
+  },
+  en: {
+    title: "Attendance & Leave Review System",
+    app_title: "Attendance & Leave Review System",
+    menu_dashboard: "Dashboard",
+    menu_import: "Import",
+    menu_attendance: "Attendance",
+    menu_leave: "Leave",
+    menu_corrections: "Corrections",
+    menu_reports: "Reports",
+    menu_settings: "Settings",
+    dashboard_title: "Overview Dashboard",
+    dashboard_subtitle: "Daily summary of attendance and leave",
+    kpi_scan_rate: "Scan success rate",
+    kpi_scan_meta_prefix: "Total employees:",
+    people: "people",
+    scanned: "Scanned:",
+    kpi_late: "Late",
+    kpi_absent: "Absent",
+    kpi_pending: "Pending requests",
+    pending_note: "Time corrections + leave (pending)",
+    import_title: "Import from iVMS4200-AC",
+    import_subtitle: "Upload CSV/XLSX/XLS with columns <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
+    drop_here: "Drop file here or click to choose",
+    accept_hint: "Accept .csv .xlsx .xls up to 10MB",
+    choose_file: "Choose file",
+    preview_title: "Preview (first 50 rows)",
+    th_time: "Time",
+    th_empcode: "Employee Code",
+    th_name: "Name",
+    th_dept: "Department",
+    th_type: "Type",
+    th_device: "Device",
+    rows_ready: "rows ready",
+    download_error: "Download Error Log",
+    import_btn: "Import",
+    emp_title: "Manage Employees (employees)",
+    export_csv: "Export CSV",
+    export_xlsx: "Export XLSX",
+    download_template: "Download Template",
+    choose_emp_file: "Choose file to import",
+    support_formats: "Supports .csv / .xlsx / .xls",
+    ready_to_import: "Ready:",
+    import_emp: "Import employees",
+    emp_db_error: "Database error details (employees)"
+  },
+  ja: {
+    title: "出勤・休暇レビューシステム",
+    app_title: "出勤・休暇レビューシステム",
+    menu_dashboard: "ダッシュボード",
+    menu_import: "インポート",
+    menu_attendance: "出勤確認",
+    menu_leave: "休暇管理",
+    menu_corrections: "修正申請",
+    menu_reports: "レポート",
+    menu_settings: "設定",
+    dashboard_title: "概要ダッシュボード",
+    dashboard_subtitle: "出勤と休暇の毎日のサマリー",
+    kpi_scan_rate: "スキャン成功率",
+    kpi_scan_meta_prefix: "従業員合計:",
+    people: "人",
+    scanned: "スキャン済み:",
+    kpi_late: "遅刻",
+    kpi_absent: "欠勤",
+    kpi_pending: "承認待ち",
+    pending_note: "時間修正 + 休暇 (保留)",
+    import_title: "iVMS4200-AC からインポート",
+    import_subtitle: "次の列を含む CSV/XLSX/XLS をアップロード <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
+    drop_here: "ここにファイルをドロップ、またはクリックして選択",
+    accept_hint: "CSV / XLSX / XLS（最大10MB）をサポート",
+    choose_file: "ファイルを選択",
+    preview_title: "プレビュー（最初の50行）",
+    th_time: "時間",
+    th_empcode: "社員コード",
+    th_name: "氏名",
+    th_dept: "部門",
+    th_type: "区分",
+    th_device: "装置",
+    rows_ready: "件の準備完了",
+    download_error: "エラーログをダウンロード",
+    import_btn: "インポート",
+    emp_title: "従業員管理（employees）",
+    export_csv: "CSV 出力",
+    export_xlsx: "XLSX 出力",
+    download_template: "テンプレートをダウンロード",
+    choose_emp_file: "インポートするファイルを選択",
+    support_formats: "CSV / XLSX / XLS 対応",
+    ready_to_import: "準備：",
+    import_emp: "従業員をインポート",
+    emp_db_error: "データベースエラーの詳細（従業員）"
+  }
+};
+
+function applyI18n(lang){
+  const dict = I18N[lang] || I18N.th;
+  document.title = dict.title || document.title;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const html = dict[key];
+    if (html == null) return;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = html;
+    } else {
+      el.innerHTML = html;
+    }
+  });
+  const dateEl = document.getElementById('currentDate');
+  if (dateEl) {
+    const locales = { th:'th-TH', en:'en-US', ja:'ja-JP' };
+    dateEl.textContent = new Date().toLocaleDateString(locales[lang] || 'th-TH', { year:'numeric', month:'long', day:'numeric' });
+  }
+  localStorage.setItem('lang', lang);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sw = document.getElementById('langSwitch');
+  if (sw) {
+    sw.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-lang]');
+      if(!btn) return;
+      applyI18n(btn.getAttribute('data-lang'));
+    });
+  }
+  applyI18n(localStorage.getItem('lang') || 'th');
+});
+
   </script>
 </body>
 </html>
