@@ -30,6 +30,11 @@
     .lang-btn{padding:6px 8px;border:1px solid #E5E7EB;border-radius:8px;background:#fff}
     .lang-btn.active{outline:2px solid #6366F1;outline-offset:0}
     .lang-btn:hover{background:#F9FAFB}
+    /* Chips for status in attendance page */
+    .chip{display:inline-flex;align-items:center;font-size:.75rem;border-radius:9999px;padding:.125rem .5rem;border:1px solid}
+    .chip-green{color:#059669;background:#ecfdf5;border-color:#a7f3d0}
+    .chip-amber{color:#b45309;background:#fffbeb;border-color:#fde68a}
+    .chip-rose{color:#be123c;background:#fff1f2;border-color:#fecdd3}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -197,6 +202,80 @@
       </div>
     </section>
 
+    <!-- Attendance Review (integrated full UI) -->
+    <section id="attendance-section" class="section-content p-6 hidden">
+      <div class="mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-1">ตรวจสอบเวลาเข้างาน</h2>
+        <p class="text-gray-600">ดูเวลา Check-in / Check-out พร้อมตัวกรอง แผนก • ชื่อ • รหัสพนักงาน</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600 mb-1">วันที่</label>
+            <input id="attDate" type="date" class="w-full border rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">แผนก</label>
+            <select id="attDept" class="w-full border rounded-lg px-3 py-2 text-sm">
+              <option value="">ทั้งหมด</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">รหัสพนักงาน</label>
+            <input id="attCode" type="text" placeholder="เช่น WTH00001" class="w-full border rounded-lg px-3 py-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">ชื่อ</label>
+            <input id="attName" type="text" placeholder="เช่น สมหญิง" class="w-full border rounded-lg px-3 py-2 text-sm">
+          </div>
+        </div>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="attSearch" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><i class="fa fa-search mr-2"></i>ค้นหา</button>
+          <button id="attReset" class="px-4 py-2 rounded-lg border hover:bg-gray-50"><i class="fa fa-rotate-left mr-2"></i>ล้างตัวกรอง</button>
+          <div class="ml-auto flex items-center gap-2">
+            <button id="attExport" class="px-3 py-2 rounded-lg border hover:bg-gray-50"><i class="fa fa-file-csv mr-2"></i>ส่งออก CSV</button>
+            <span id="attResultCount" class="text-sm text-gray-600"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white rounded-xl shadow-sm">
+        <div class="px-4 py-3 border-b bg-gray-50 rounded-t-xl flex items-center justify-between">
+          <div class="text-sm text-gray-700">ผลลัพธ์</div>
+          <div class="text-xs text-gray-500">เวลาแสดงเป็นท้องถิ่น</div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm" id="attTable">
+            <thead>
+              <tr class="bg-white">
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">แผนก</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">รหัส</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">ชื่อ</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">Check-in แรก</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">Check-out สุดท้าย</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="attTBody" class="divide-y divide-gray-100 bg-white">
+              <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="px-4 py-3 border-t flex items-center justify-between">
+          <div class="text-xs text-gray-500">แสดง <span id="attPageInfo">0–0</span></div>
+          <div class="flex items-center gap-2">
+            <button id="attPrev" class="px-3 py-1.5 rounded-lg border hover:bg-gray-50 disabled:opacity-40" disabled><i class="fa fa-chevron-left"></i></button>
+            <button id="attNext" class="px-3 py-1.5 rounded-lg border hover:bg-gray-50 disabled:opacity-40" disabled><i class="fa fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Import -->
     <section id="import-section" class="section-content p-6 hidden">
       <h2 class="text-2xl font-semibold text-gray-900 mb-2" data-i18n="import_title">นำเข้าข้อมูลจาก iVMS4200-AC</h2>
@@ -295,7 +374,6 @@
     </section>
 
     <!-- Stubs -->
-    <section id="attendance-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">ตรวจสอบเวลาเข้างาน</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="leave-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">จัดการการลา</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="corrections-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">คำขอแก้ไข</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
     <section id="reports-section" class="section-content p-6 hidden"><h2 class="text-2xl font-semibold text-gray-900 mb-2">รายงาน</h2><p class="text-gray-600">หน้าตัวอย่าง (กำลังพัฒนา)</p></section>
@@ -306,8 +384,7 @@
     // ====== CONFIG Supabase ======
     const SUPABASE_URL = "https://ftapghebfvfxbtqojkfp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0YXBnaGViZnZmeGJ0cW9qa2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NDI2OTQsImV4cCI6MjA3MzIxODY5NH0.OEbaUGNAfC1HvWOQM9nptpPJuxB_vzi8GV7aFAd-L10";
-    let client = null;
-    if (window.supabase) client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ====== Utils ======
     function toast(msg, ok = true) {
@@ -438,7 +515,7 @@
       return { absentRows: abs, scannedCodes };
     }
 
-    // ====== DOM Ready ======
+    // ===== DOM Ready =====
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('currentDate').textContent =
         new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -451,6 +528,7 @@
         document.querySelectorAll('.nav-item').forEach(x => { x.classList.remove('bg-blue-50','text-blue-700'); x.classList.add('text-gray-700'); });
         a.classList.add('bg-blue-50','text-blue-700'); a.classList.remove('text-gray-700');
         if (a.dataset.section === 'dashboard') refreshDashboard();
+        if (a.dataset.section === 'attendance') attEnsureInit();
       }));
 
       // Attendance import bindings
@@ -766,30 +844,38 @@
           .in('employee_code', uniq)
           .limit(10000);
         const mp = new Map();
-        (emps||[]).forEach(e => mp.set(e.employee_code, e.full_name || ''));
-        if (mp.size === uniq.length) return mp;
-        // 2) Fill missing using recent raw_scans
-        const missing = uniq.filter(c => !mp.has(c));
-        if (missing.length) {
+        (emps||[]).forEach(e => {
+          const nm = (e?.full_name ?? '').toString().trim();
+          mp.set(e.employee_code, nm); // may be empty; we'll refill below
+        });
+        // 2) Fill names that are missing OR empty using recent raw_scans
+        const needFill = uniq.filter(c => !mp.has(c) || !(mp.get(c) || '').trim());
+        if (needFill.length) {
           const { data: scans } = await client
             .from('raw_scans')
-            .select('employee_code, full_name')
-            .in('employee_code', missing)
+            .select('employee_code, full_name, event_time')
+            .in('employee_code', needFill)
             .order('event_time', { ascending: false })
-            .limit(5000);
-          (scans||[]).forEach(s => { if (!mp.has(s.employee_code) && s.full_name) mp.set(s.employee_code, s.full_name); });
+            .limit(10000);
+          (scans||[]).forEach(s => {
+            const nm = (s?.full_name ?? '').toString().trim();
+            if (nm) mp.set(s.employee_code, nm);
+          });
         }
         return mp;
       } catch(e) {
         // Fallback: only raw_scans
         const { data: scans } = await client
           .from('raw_scans')
-          .select('employee_code, full_name')
+          .select('employee_code, full_name, event_time')
           .in('employee_code', uniq)
           .order('event_time', { ascending: false })
           .limit(10000);
         const mp = new Map();
-        (scans||[]).forEach(s => { if (s.full_name) mp.set(s.employee_code, s.full_name); });
+        (scans||[]).forEach(s => {
+          const nm = (s?.full_name ?? '').toString().trim();
+          if (nm) mp.set(s.employee_code, nm);
+        });
         return mp;
       }
     }
@@ -833,7 +919,7 @@
       const sel = document.getElementById('absentDeptFilter');
       if(!sel) return;
       const unique = Array.from(new Set((data||[]).map(r => r.department || ''))).sort((a,b)=> (a||'').localeCompare((b||''),'th-TH'));
-      sel.innerHTML = '<option value="">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
+      sel.innerHTML = '<option value=\"\">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
     }
 
     function renderAbsentTable(){
@@ -865,6 +951,165 @@
           </tr>
         `).join('');
       }
+    }
+
+    // ===== Attendance Review (live) =====
+    let ATT_INIT = false;
+    let ATT_ALL = [];
+    let ATT_FILTERED = [];
+    let ATT_PAGE = 1;
+    const ATT_SIZE = 25;
+
+    const att$ = (s) => document.querySelector(s);
+    const attFmtHM = (iso) => {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      if (isNaN(d)) return "-";
+      const hh = String(d.getHours()).padStart(2,"0");
+      const mm = String(d.getMinutes()).padStart(2,"0");
+      return `${hh}:${mm}`;
+    };
+    function attSetLoading(on=true){
+      const tb = att$('#attTBody');
+      tb.innerHTML = on ? '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">กำลังโหลดข้อมูล...</td></tr>' : "";
+    }
+    function attToDayRangeISO(dateISO){
+      const s = new Date(dateISO + "T00:00:00");
+      const e = new Date(s.getTime() + 86400000);
+      return { from: s.toISOString(), to: e.toISOString() };
+    }
+    async function attLoadDepartments(){
+      try {
+        const { data, error } = await client.from("employees").select("department").limit(10000);
+        if (error) throw error;
+        const opts = Array.from(new Set((data||[]).map(x=>x.department).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"th-TH"));
+        att$('#attDept').innerHTML = '<option value=\"\">ทั้งหมด</option>' + opts.map(d=>`<option value="${d}">${d}</option>`).join("");
+      } catch (e){
+        att$('#attDept').innerHTML = '<option value="">ทั้งหมด</option>';
+      }
+    }
+    async function attGetLatestDate(){
+      try {
+        const { data } = await client.from("raw_scans").select("event_time").order("event_time", {ascending:false}).limit(1);
+        if (data && data[0]) return new Date(data[0].event_time).toISOString().slice(0,10);
+      } catch(e) {}
+      const d = new Date(); return d.toISOString().slice(0,10);
+    }
+    async function attFetchRows(){
+      const dateISO = att$('#attDate').value;
+      const { from, to } = attToDayRangeISO(dateISO);
+      attSetLoading(true);
+      try {
+        // day statuses
+        const { data: days } = await client.from("attendance_days")
+          .select("employee_code, department, status")
+          .eq("work_date", dateISO)
+          .limit(200000);
+        const statusMap = new Map();
+        (days||[]).forEach(r => statusMap.set(r.employee_code, (r.status||"").toLowerCase()));
+
+        // raw scans during the day
+        const { data: scans } = await client.from("raw_scans")
+          .select("employee_code, full_name, department, direction, event_time")
+          .gte("event_time", from).lt("event_time", to)
+          .in("direction", ["IN","OUT"])
+          .limit(200000);
+        const mp = new Map();
+        (scans||[]).forEach(s => {
+          const key = s.employee_code;
+          const o = mp.get(key) || { employee_code: key, full_name: s.full_name, department: s.department, first_in: null, last_out: null, status: statusMap.get(key) || "" };
+          if (s.direction === "IN") {
+            if (!o.first_in || s.event_time < o.first_in) o.first_in = s.event_time;
+          } else if (s.direction === "OUT") {
+            if (!o.last_out || s.event_time > o.last_out) o.last_out = s.event_time;
+          }
+          if (!o.full_name && s.full_name) o.full_name = s.full_name;
+          if (!o.department && s.department) o.department = s.department;
+          mp.set(key, o);
+        });
+        ATT_ALL = Array.from(mp.values()).sort((a,b)=> (a.department||"").localeCompare((b.department||""), "th-TH") || (a.employee_code||"").localeCompare(b.employee_code||""));
+        attSetLoading(false);
+        attApplyFilters();
+      } catch(e){
+        console.warn("attFetchRows error", e);
+        attSetLoading(false);
+        ATT_ALL = [];
+        attApplyFilters();
+      }
+    }
+    function attApplyFilters(){
+      const dept = att$('#attDept').value.trim().toLowerCase();
+      const code = att$('#attCode').value.trim().toLowerCase();
+      const name = att$('#attName').value.trim().toLowerCase();
+      ATT_FILTERED = ATT_ALL.filter(r =>
+        (!dept || (r.department||"").toLowerCase() === dept) &&
+        (!code || (r.employee_code||"").toLowerCase().includes(code)) &&
+        (!name || (r.full_name||"").toLowerCase().includes(name))
+      );
+      ATT_PAGE = 1;
+      attRender();
+    }
+    function attRender(){
+      const start = (ATT_PAGE-1)*ATT_SIZE;
+      const end = Math.min(start+ATT_SIZE, ATT_FILTERED.length);
+      const rows = ATT_FILTERED.slice(start, end);
+
+      const tb = att$('#attTBody');
+      if (!rows.length){
+        tb.innerHTML = '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">ไม่พบข้อมูล</td></tr>';
+      } else {
+        tb.innerHTML = rows.map(r => `
+          <tr>
+            <td class="px-3 py-2">${r.department || "-"}</td>
+            <td class="px-3 py-2">${r.employee_code || "-"}</td>
+            <td class="px-3 py-2">${r.full_name || "-"}</td>
+            <td class="px-3 py-2">${attFmtHM(r.first_in)}</td>
+            <td class="px-3 py-2">${attFmtHM(r.last_out)}</td>
+            <td class="px-3 py-2">${
+              r.status === "late" ? '<span class="chip chip-amber">มาสาย</span>' :
+              r.status === "present" ? '<span class="chip chip-green">ปกติ</span>' :
+              r.status === "absent" ? '<span class="chip chip-rose">ขาด</span>' : '-'
+            }</td>
+          </tr>
+        `).join("");
+      }
+
+      att$('#attResultCount').textContent = `ทั้งหมด ${ATT_FILTERED.length} รายการ`;
+      att$('#attPageInfo').textContent = `${ATT_FILTERED.length ? start+1 : 0}–${end}`;
+      att$('#attPrev').disabled = ATT_PAGE <= 1;
+      att$('#attNext').disabled = end >= ATT_FILTERED.length;
+    }
+    function attExportCSV(){
+      const cols = ["department","employee_code","full_name","first_in","last_out","status"];
+      const header = cols.join(",");
+      const lines = ATT_FILTERED.map(r => cols.map(k => `"${(r[k] ?? "").toString().replace(/"/g,'""')}"`).join(","));
+      const csv = [header, ...lines].join("\n");
+      const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "attendance-checkin.csv"; a.click();
+      URL.revokeObjectURL(url);
+    }
+    async function attEnsureInit(){
+      if (!ATT_INIT){
+        // init date and departments
+        att$('#attDate').value = await attGetLatestDate();
+        await attLoadDepartments();
+        // events
+        att$('#attSearch').addEventListener('click', attApplyFilters);
+        att$('#attReset').addEventListener('click', () => {
+          att$('#attDept').value = ""; att$('#attCode').value=""; att$('#attName').value=""; attApplyFilters();
+        });
+        att$('#attExport').addEventListener('click', attExportCSV);
+        att$('#attPrev').addEventListener('click', ()=>{ ATT_PAGE=Math.max(1,ATT_PAGE-1); attRender(); });
+        att$('#attNext').addEventListener('click', ()=>{ const max = Math.ceil(ATT_FILTERED.length/ATT_SIZE)||1; ATT_PAGE=Math.min(max,ATT_PAGE+1); attRender(); });
+        att$('#attCode').addEventListener('input', attApplyFilters);
+        att$('#attName').addEventListener('input', attApplyFilters);
+        att$('#attDept').addEventListener('change', attApplyFilters);
+        att$('#attDate').addEventListener('change', attFetchRows);
+        ATT_INIT = true;
+      }
+      await attFetchRows();
     }
 
     // ===== i18n (TH/EN/JA) =====
