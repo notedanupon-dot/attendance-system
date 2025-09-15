@@ -384,18 +384,36 @@
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = (val ?? '—'); }
 
     // ===== Helpers to compute ABSENT by "no check-in" =====
-    async function fetchActiveEmployees(){
+    async function fetchActiveEmployees(dateFor){
+      // 1) Try employees table (preferred)
       try {
         const { data, error } = await client.from('employees')
           .select('employee_code,department,full_name,is_active');
         if (error) throw error;
-        return (data||[]).filter(e => e.is_active !== false); // treat null/true as active
+        const arr = (data||[]).filter(e => e.is_active !== false); // treat null/true as active
+        if (arr.length > 0) return { list: arr, source: 'employees' };
       } catch(e) {
-        console.warn('fetchActiveEmployees fallback to attendance_days only:', e);
-        // Fallback: use attendance_days (will cause absent=0 if no rows)
-        const today = new Date().toISOString().slice(0,10);
-        const { data } = await client.from('attendance_days').select('employee_code,department').eq('work_date', today);
-        return data || [];
+        console.info('[absent] employees table not accessible, fallback to attendance_days window.');
+      }
+      // 2) Fallback: union of attendance_days last 60 days (assume still active)
+      const end = dateFor || new Date().toISOString().slice(0,10);
+      const start = new Date(Date.parse(end) - 59*86400000).toISOString().slice(0,10);
+      try {
+        const { data, error } = await client.from('attendance_days')
+          .select('employee_code,department')
+          .gte('work_date', start)
+          .lte('work_date', end)
+          .limit(100000);
+        if (error) throw error;
+        const mp = new Map();
+        (data||[]).forEach(r => {
+          if (!mp.has(r.employee_code)) mp.set(r.employee_code, { employee_code: r.employee_code, department: r.department || '', full_name: '', is_active: true });
+        });
+        console.info('[absent] using union of attendance_days (last 60 days):', mp.size);
+        return { list: Array.from(mp.values()), source: 'attendance_days' };
+      } catch(e) {
+        console.warn('fallback attendance_days union failed', e);
+        return { list: [], source: 'none' };
       }
     }
 
@@ -403,7 +421,7 @@
       const { data, error } = await client.from('attendance_days')
         .select('employee_code,department,status')
         .eq('work_date', dateISO)
-        .limit(10000);
+        .limit(100000);
       if (error) { console.warn('fetchDayRows error', error); return []; }
       return data || [];
     }
@@ -412,7 +430,6 @@
       const scannedStatuses = new Set(['present','late','missing_out']);
       const scannedCodes = new Set(dayRows.filter(r => scannedStatuses.has((r.status||'').toLowerCase())).map(r => r.employee_code));
       const abs = [];
-      const byCode = new Map(activeEmps.map(e => [e.employee_code, e]));
       activeEmps.forEach(e => {
         if (!scannedCodes.has(e.employee_code)) {
           abs.push({ department: e.department || '', employee_code: e.employee_code, full_name: e.full_name || '' });
@@ -449,9 +466,6 @@
       }
       document.getElementById('importBtn')?.addEventListener('click', handleImport);
 
-      // Employee import/export bindings
-      bindEmployeeUI();
-
       // Click KPI "Absent" to show detail
       document.getElementById('kpi-card-absent')?.addEventListener('click', loadAbsentDetail);
       document.getElementById('absentCloseBtn')?.addEventListener('click', hideAbsentDetail);
@@ -462,7 +476,7 @@
       await refreshDashboard();
     });
 
-    // ====== Attendance IMPORT (unchanged core) ======
+    // ====== Attendance IMPORT (same as before) ======
     const COLUMN_MAP = {
       emp_id:    ['Person ID','Employee ID','EmployeeID','Emp No','Emp Code'],
       name:      ['Name','Full Name','FullName'],
@@ -637,13 +651,14 @@
         await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay });
 
         // Pull active employees (for "no check-in" logic)
-        const activeEmps = await fetchActiveEmployees();
+        const { list: activeEmps, source: empSource } = await fetchActiveEmployees(latestDay);
+        if (empSource !== 'employees') console.info('[absent] active employee list derived from', empSource);
         const totalEmp = activeEmps.length;
 
         // Day rows
         const dayRows = await fetchDayRows(latestDay);
         const countsRaw = { present:0, late:0, absent:0, missing_out:0 };
-        (dayRows || []).forEach(r => countsRaw[r.status] = (countsRaw[r.status] || 0) + 1);
+        (dayRows || []).forEach(r => countsRaw[(r.status||'').toLowerCase()] = (countsRaw[(r.status||'').toLowerCase()] || 0) + 1);
 
         // Derive absent = active employees not in scanned
         const { absentRows, scannedCodes } = buildAbsentList(activeEmps, dayRows);
@@ -690,10 +705,10 @@
         (dayRows || []).forEach(r => {
           const d = r.department || '(ไม่ระบุ)';
           const o = ensure(d);
-          if (r.status === 'present') o.present++;
-          else if (r.status === 'late') o.late++;
-          else if (r.status === 'absent') o.absent++;
-          else if (r.status === 'missing_out') o.present++; // counted as present for headcount
+          const st = (r.status||'').toLowerCase();
+          if (st === 'present' || st === 'missing_out') o.present++;
+          else if (st === 'late') o.late++;
+          else if (st === 'absent') o.absent++;
         });
         (absentRows || []).forEach(a => {
           const o = ensure(a.department || '(ไม่ระบุ)');
@@ -743,6 +758,7 @@
     async function _buildNameMap(codes){
       if(!codes?.length) return new Map();
       const uniq = Array.from(new Set(codes));
+      // 1) Try employees table first
       try {
         const { data: emps } = await client
           .from('employees')
@@ -751,8 +767,31 @@
           .limit(10000);
         const mp = new Map();
         (emps||[]).forEach(e => mp.set(e.employee_code, e.full_name || ''));
+        if (mp.size === uniq.length) return mp;
+        // 2) Fill missing using recent raw_scans
+        const missing = uniq.filter(c => !mp.has(c));
+        if (missing.length) {
+          const { data: scans } = await client
+            .from('raw_scans')
+            .select('employee_code, full_name')
+            .in('employee_code', missing)
+            .order('event_time', { ascending: false })
+            .limit(5000);
+          (scans||[]).forEach(s => { if (!mp.has(s.employee_code) && s.full_name) mp.set(s.employee_code, s.full_name); });
+        }
         return mp;
-      } catch(e) { return new Map(); }
+      } catch(e) {
+        // Fallback: only raw_scans
+        const { data: scans } = await client
+          .from('raw_scans')
+          .select('employee_code, full_name')
+          .in('employee_code', uniq)
+          .order('event_time', { ascending: false })
+          .limit(10000);
+        const mp = new Map();
+        (scans||[]).forEach(s => { if (s.full_name) mp.set(s.employee_code, s.full_name); });
+        return mp;
+      }
     }
 
     async function loadAbsentDetail() {
@@ -762,7 +801,7 @@
       tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-gray-500">กำลังโหลดข้อมูล...</td></tr>';
       document.getElementById('absentDate').textContent = date;
 
-      const activeEmps = await fetchActiveEmployees();
+      const { list: activeEmps } = await fetchActiveEmployees(date);
       const dayRows = await fetchDayRows(date);
       const { absentRows } = buildAbsentList(activeEmps, dayRows);
 
@@ -794,7 +833,7 @@
       const sel = document.getElementById('absentDeptFilter');
       if(!sel) return;
       const unique = Array.from(new Set((data||[]).map(r => r.department || ''))).sort((a,b)=> (a||'').localeCompare((b||''),'th-TH'));
-      sel.innerHTML = '<option value=\"\">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
+      sel.innerHTML = '<option value="">ทั้งหมด</option>' + unique.map(d => `<option value="${d}">${d || '(ไม่ระบุ)'}</option>`).join('');
     }
 
     function renderAbsentTable(){
