@@ -127,18 +127,18 @@
       <!-- Department Summary (Table) – placed BELOW KPI row -->
       <div id="dept-table-card" class="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold text-gray-900">สรุปตามแผนก</h3>
-          <div class="text-sm text-gray-600">วันที่: <span id="deptSummaryDate">—</span></div>
+          <h3 class="text-lg font-semibold text-gray-900" data-i18n="dept_summary_title">สรุปตามแผนก</h3>
+          <div class="text-sm text-gray-600"><span data-i18n="date_label">วันที่:</span> <span id="deptSummaryDate">—</span></div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">แผนก</th>
-                <th class="text-right px-3 py-2 text-emerald-700 font-medium">มาทำงาน</th>
-                <th class="text-right px-3 py-2 text-amber-700 font-medium">มาสาย</th>
-                <th class="text-right px-3 py-2 text-rose-700 font-medium">ขาดงาน</th>
-                <th class="text-right px-3 py-2 text-gray-700 font-semibold">รวม</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="table_dept">แผนก</span></th>
+                <th class="text-right px-3 py-2 text-emerald-700 font-medium"><span data-i18n="table_present">มาทำงาน</span></th>
+                <th class="text-right px-3 py-2 text-amber-700 font-medium"><span data-i18n="table_late">มาสาย</span></th>
+                <th class="text-right px-3 py-2 text-rose-700 font-medium"><span data-i18n="table_absent">ขาดงาน</span></th>
+                <th class="text-right px-3 py-2 text-gray-700 font-semibold"><span data-i18n="table_total">รวม</span></th>
               </tr>
             </thead>
             <tbody id="deptSummaryTBody" class="divide-y divide-gray-100 bg-white">
@@ -146,7 +146,7 @@
             </tbody>
             <tfoot class="bg-gray-50">
               <tr class="font-semibold">
-                <td class="px-3 py-2">รวมทั้งหมด</td>
+                <td class="px-3 py-2"><span data-i18n="grand_total">รวมทั้งหมด</span></td>
                 <td class="px-3 py-2 text-right" id="deptTotalPresent">-</td>
                 <td class="px-3 py-2 text-right" id="deptTotalLate">-</td>
                 <td class="px-3 py-2 text-right" id="deptTotalAbsent">-</td>
@@ -162,37 +162,37 @@
         <!-- Filters -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">แผนก</label>
+            <label class="block text-sm text-gray-600 mb-1" data-i18n="table_dept">แผนก</label>
             <select id="absentDeptFilter" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">ทั้งหมด</option>
             </select>
           </div>
           <div class="md:col-span-2">
-            <label class="block text-sm text-gray-600 mb-1">ค้นหาชื่อ/รหัสพนักงาน</label>
+            <label class="block text-sm text-gray-600 mb-1" data-i18n="search_name">ค้นหาชื่อ/รหัสพนักงาน</label>
             <input id="absentSearch" type="text" placeholder="เช่น WTH00001 หรือ สมหญิง" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
     
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold text-gray-900">รายชื่อขาดงาน (ไม่มี Check-in)</h3>
+          <h3 class="text-lg font-semibold text-gray-900" data-i18n="absent_list_title">รายชื่อขาดงาน (ไม่มี Check-in)</h3>
           <div class="text-sm text-gray-600">
-            วันที่: <span id="absentDate">—</span> • รวม <span id="absentCount">0</span> คน
+            <span data-i18n="date_label">วันที่:</span> <span id="absentDate">—</span> • <span data-i18n="total_label">รวม</span> <span id="absentCount">0</span> <span data-i18n="people">คน</span>
           </div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">แผนก</th>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">รหัสพนักงาน</th>
-                <th class="text-left px-3 py-2 text-gray-600 font-medium">ชื่อ-สกุล</th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="table_dept">แผนก</span></th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="th_empcode">รหัสพนักงาน</span></th>
+                <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="th_name">ชื่อ</span></th>
               </tr>
             </thead>
             <tbody id="absentTBody" class="divide-y divide-gray-100 bg-white"></tbody>
           </table>
         </div>
         <div class="mt-3 text-right">
-          <button id="absentCloseBtn" class="px-3 py-2 rounded-lg border hover:bg-gray-50">ซ่อนตาราง</button>
+          <button id="absentCloseBtn" class="px-3 py-2 rounded-lg border hover:bg-gray-50" data-i18n="hide_table">ซ่อนตาราง</button>
         </div>
       </div>
     </section>
@@ -354,7 +354,7 @@
       let iso = parseDateSmart(s);
       if (iso) return iso;
       if (/^\d{5}$|^\d{6}$/.test(s)) return excelSerialToISO(Number(s));
-      const digits = s.replace(/\D/g,'');
+      const digits = s.replace(/\D/g, '');
       if (digits.length === 8) { // ddmmyyyy
         const d = digits.slice(0,2), m = digits.slice(2,4), y = digits.slice(4);
         return `${y}-${m}-${d}`;
@@ -382,6 +382,44 @@
       return `${dateISO}T${h}:${m}:${s}Z`;
     }
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = (val ?? '—'); }
+
+    // ===== Helpers to compute ABSENT by "no check-in" =====
+    async function fetchActiveEmployees(){
+      try {
+        const { data, error } = await client.from('employees')
+          .select('employee_code,department,full_name,is_active');
+        if (error) throw error;
+        return (data||[]).filter(e => e.is_active !== false); // treat null/true as active
+      } catch(e) {
+        console.warn('fetchActiveEmployees fallback to attendance_days only:', e);
+        // Fallback: use attendance_days (will cause absent=0 if no rows)
+        const today = new Date().toISOString().slice(0,10);
+        const { data } = await client.from('attendance_days').select('employee_code,department').eq('work_date', today);
+        return data || [];
+      }
+    }
+
+    async function fetchDayRows(dateISO){
+      const { data, error } = await client.from('attendance_days')
+        .select('employee_code,department,status')
+        .eq('work_date', dateISO)
+        .limit(10000);
+      if (error) { console.warn('fetchDayRows error', error); return []; }
+      return data || [];
+    }
+
+    function buildAbsentList(activeEmps, dayRows){
+      const scannedStatuses = new Set(['present','late','missing_out']);
+      const scannedCodes = new Set(dayRows.filter(r => scannedStatuses.has((r.status||'').toLowerCase())).map(r => r.employee_code));
+      const abs = [];
+      const byCode = new Map(activeEmps.map(e => [e.employee_code, e]));
+      activeEmps.forEach(e => {
+        if (!scannedCodes.has(e.employee_code)) {
+          abs.push({ department: e.department || '', employee_code: e.employee_code, full_name: e.full_name || '' });
+        }
+      });
+      return { absentRows: abs, scannedCodes };
+    }
 
     // ====== DOM Ready ======
     document.addEventListener('DOMContentLoaded', async () => {
@@ -424,7 +462,7 @@
       await refreshDashboard();
     });
 
-    // ====== Attendance IMPORT ======
+    // ====== Attendance IMPORT (unchanged core) ======
     const COLUMN_MAP = {
       emp_id:    ['Person ID','Employee ID','EmployeeID','Emp No','Emp Code'],
       name:      ['Name','Full Name','FullName'],
@@ -598,24 +636,27 @@
 
         await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay });
 
-        const { data: empDay } = await client.from('attendance_days').select('employee_code').eq('work_date', latestDay);
-        const totalEmp = new Set((empDay || []).map(x => x.employee_code)).size;
+        // Pull active employees (for "no check-in" logic)
+        const activeEmps = await fetchActiveEmployees();
+        const totalEmp = activeEmps.length;
 
-        const { data: dayRows } = await client.from('attendance_days')
-          .select('status')
-          .eq('work_date', latestDay);
-        const counts = { present:0, late:0, absent:0, missing_out:0 };
-        (dayRows || []).forEach(r => counts[r.status] = (counts[r.status] || 0) + 1);
+        // Day rows
+        const dayRows = await fetchDayRows(latestDay);
+        const countsRaw = { present:0, late:0, absent:0, missing_out:0 };
+        (dayRows || []).forEach(r => countsRaw[r.status] = (countsRaw[r.status] || 0) + 1);
 
-        const scanned = totalEmp ? (totalEmp - counts.absent) : 0;
+        // Derive absent = active employees not in scanned
+        const { absentRows, scannedCodes } = buildAbsentList(activeEmps, dayRows);
+        const absentCount = absentRows.length;
+        const scanned = totalEmp - absentCount;
         const rate = totalEmp ? Math.round((scanned / totalEmp) * 100) : 0;
 
         setText('stat-total-emp', totalEmp);
         setText('stat-scanned', scanned);
         setText('stat-scan-rate', rate);
         const bar = document.getElementById('scan-bar'); if (bar) bar.style.width = rate + '%';
-        setText('stat-late', counts.late || 0);
-        setText('stat-absent', counts.absent || 0);
+        setText('stat-late', countsRaw.late || 0);
+        setText('stat-absent', absentCount);
 
         let pending = 0;
         const cr = await client.from('time_corrections').select('id', { count: 'exact', head: true }).eq('status', 'pending');
@@ -624,425 +665,69 @@
         if (!lr.error && lr.count) pending += lr.count;
         setText('stat-pending', pending);
 
-        // Department summary
-        await renderDeptSummary(latestDay);
+        // Department summary (using derived absence)
+        await renderDeptSummary(latestDay, activeEmps, dayRows, absentRows);
       } catch (e) {
         console.warn('refreshDashboard error', e);
       }
     }
 
-    async function renderDeptSummary(dateISO) {
+    async function renderDeptSummary(dateISO, activeEmps, dayRows, absentRows) {
       document.getElementById('deptSummaryDate').textContent = dateISO || '—';
       const tbody = document.getElementById('deptSummaryTBody');
       if (!tbody) return;
 
       tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-gray-500">กำลังโหลดข้อมูล...</td></tr>';
 
-      const { data, error } = await client
-        .from('attendance_days')
-        .select('department,status')
-        .eq('work_date', dateISO)
-        .limit(10000);
-
-      if (error) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-red-600">โหลดข้อมูลไม่สำเร็จ</td></tr>';
-        return;
-      }
-
-      // Compute by department
-      const mp = new Map();
-      (data || []).forEach(r => {
-        const d = (r.department || '(ไม่ระบุ)').trim();
-        if (!mp.has(d)) mp.set(d, { present:0, late:0, absent:0, total:0 });
-        const o = mp.get(d);
-        if (r.status === 'present') o.present++;
-        else if (r.status === 'late') o.late++;
-        else if (r.status === 'absent') o.absent++;
-        o.total++;
-      });
-
-      const rows = Array.from(mp.entries()).sort((a,b)=> a[0].localeCompare(b[0],'th-TH'));
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-gray-500">ไม่มีข้อมูล</td></tr>';
-      } else {
-        let totP=0, totL=0, totA=0, totAll=0;
-        tbody.innerHTML = rows.map(([dept, v]) => {
-          totP+=v.present; totL+=v.late; totA+=v.absent; totAll+=v.total;
-          return `
-          <tr>
-            <td class="px-3 py-2">${dept}</td>
-            <td class="px-3 py-2 text-right text-emerald-700">${v.present}</td>
-            <td class="px-3 py-2 text-right text-amber-700">${v.late}</td>
-            <td class="px-3 py-2 text-right text-rose-700">${v.absent}</td>
-            <td class="px-3 py-2 text-right font-semibold">${v.total}</td>
-          </tr>`;
-        }).join('');
-        document.getElementById('deptTotalPresent').textContent = totP;
-        document.getElementById('deptTotalLate').textContent = totL;
-        document.getElementById('deptTotalAbsent').textContent = totA;
-        document.getElementById('deptTotalAll').textContent = totAll;
-      }
-    }
-
-    // ====== EMPLOYEE Import/Export ======
-    const EMP_MAP = {
-      employee_code: ['employee_code','Employee Code','Emp Code','Emp No','Person ID','EmployeeID','Employee ID'],
-      full_name:     ['full_name','Full Name','Name'],
-      department:    ['department','Department','Dept','Division'],
-      position:      ['position','ตำแหน่ง','Job Title','Title'],
-      is_active:     ['is_active','Active','ใช้งาน'],
-      hire_date:     ['hire_date','Start Date','Hire Date','วันที่เริ่มงาน'],
-      resign_date:   ['resign_date','Resign Date','End Date','วันที่สิ้นสุด'],
-      email:         ['email','Email'],
-      phone:         ['phone','Phone','เบอร์โทร'],
-      manager_code:  ['manager_code','Manager Code','หัวหน้า']
-    };
-
-    let empRows = [];
-    let empErrs = [];
-
-    function bindEmployeeUI() {
-      const inp = document.getElementById('empFileInput');
-      document.getElementById('empChooseFileBtn').addEventListener('click', () => inp.click());
-      inp.addEventListener('change', async () => {
-        if (!inp.files?.length) return;
-        const f = inp.files[0];
-        const ext = (f.name.split('.').pop()||'').toLowerCase();
-        const raw = ext==='csv' ? await new Promise((res,rej)=>Papa.parse(f,{header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}))
-                  : (ext==='xlsx'||ext==='xls') ? await new Promise((res,rej)=>{ const rd=new FileReader(); rd.onload=e=>{ const wb=XLSX.read(e.target.result,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; res(XLSX.utils.sheet_to_json(ws,{defval:''}));}; rd.onerror=rej; rd.readAsArrayBuffer(f); })
-                  : null;
-        if (!raw) return toast('รองรับเฉพาะ .csv .xlsx .xls', false);
-        prepareEmpRows(raw);
-      });
-
-      document.getElementById('empImportBtn').addEventListener('click', importEmployees);
-      document.getElementById('empExportCsvBtn').addEventListener('click', () => exportEmployees('csv'));
-      document.getElementById('empExportXlsxBtn').addEventListener('click', () => exportEmployees('xlsx'));
-      document.getElementById('empErrBtn').addEventListener('click', downloadEmpErrors);
-      document.getElementById('empTemplateBtn').addEventListener('click', downloadEmpTemplate);
-    }
-
-    function headerResolve(row, map) {
-      const headers = Object.keys(row || {});
-      const ret = {};
-      for (const [k, aliases] of Object.entries(map)) {
-        ret[k] = headers.find(h => aliases.some(a => a.toLowerCase() === String(h).trim().toLowerCase())) || null;
-      }
-      return ret;
-    }
-
-    function prepareEmpRows(raw) {
-      empRows = []; empErrs = [];
-      if (!raw?.length) { toast('ไฟล์พนักงานว่างเปล่า', false); return; }
-      const cols = headerResolve(raw[0], EMP_MAP);
-
-      const dedup = new Map();
-      for (const r of raw) {
-        const employee_code = clean(r[cols.employee_code]);
-        const full_name     = clean(r[cols.full_name]);
-        if (!employee_code || !full_name) { empErrs.push({ reason:'missing_code_or_name', row:r }); continue; }
-
-        const row = {
-          employee_code,
-          full_name,
-          department:  clean(r[cols.department]),
-          position:    clean(r[cols.position]),
-          is_active:   toBool(r[cols.is_active]),
-          hire_date:   parseDateFlexible(r[cols.hire_date]),
-          resign_date: parseDateFlexible(r[cols.resign_date]),
-          email:       clean(r[cols.email]),
-          phone:       (r[cols.phone] ?? '').toString().replace(/\\s+/g,'').replace(/[^0-9+]/g,'').slice(0,20) || null,
-          manager_code: clean(r[cols.manager_code])
-        };
-        if (row.is_active === null) row.is_active = true; // default
-
-        dedup.set(row.employee_code, row);
-      }
-      empRows = Array.from(dedup.values());
-
-      // preview
-      const tb = document.getElementById('empPreviewTbody');
-      tb.innerHTML = empRows.slice(0, 100).map(e => `
-        <tr>
-          <td class="px-4 py-2 text-sm">${e.employee_code||''}</td>
-          <td class="px-4 py-2 text-sm">${e.full_name||''}</td>
-          <td class="px-4 py-2 text-sm">${e.department||''}</td>
-          <td class="px-4 py-2 text-sm">${e.position||''}</td>
-          <td class="px-4 py-2 text-sm">${e.is_active}</td>
-          <td class="px-4 py-2 text-sm">${e.hire_date||''}</td>
-          <td class="px-4 py-2 text-sm">${e.resign_date||''}</td>
-          <td class="px-4 py-2 text-sm">${e.email||''}</td>
-          <td class="px-4 py-2 text-sm">${e.phone||''}</td>
-          <td class="px-4 py-2 text-sm">${e.manager_code||''}</td>
-        </tr>
-      `).join('');
-
-      document.getElementById('empReadyCount').textContent = empRows.length.toLocaleString('th-TH');
-      document.getElementById('empImportBtn').disabled = empRows.length === 0;
-    }
-
-    async function importEmployees() {
-      if (!empRows.length) { toast('ไม่มีข้อมูลพนักงานสำหรับนำเข้า', false); return; }
-      const CHUNK = 500;
-      let ok=0, fail=0, firstError=null;
-      for (let i=0;i<empRows.length;i+=CHUNK) {
-        const batch = empRows.slice(i, i+CHUNK);
-        const { error } = await client.from('employees').upsert(batch, { onConflict: 'employee_code' });
-        if (error) { 
-          fail += batch.length; 
-          if(!firstError) firstError = error; 
-          console.error(error); 
+      try {
+        // Build department aggregates
+        const mp = new Map(); // dept -> {present, late, absent, total}
+        function ensure(dept){
+          if (!mp.has(dept)) mp.set(dept, { present:0, late:0, absent:0, total:0 });
+          return mp.get(dept);
         }
-        else { ok += batch.length; }
-      }
-      if (firstError) {
-        document.getElementById('empDebug').classList.remove('hidden');
-        document.getElementById('empErrorText').textContent = (firstError.message || JSON.stringify(firstError, null, 2));
-        if ((firstError.message||'').toLowerCase().includes('row level security')) {
-          document.getElementById('empErrorText').textContent += "\\n\\nคำแนะนำ: ตรวจสอบ RLS ของตาราง employees (ควรปิดระหว่างทดสอบ หรือสร้าง policy สำหรับ insert/update ด้วย anon)";
-        }
-        toast('นำเข้าไม่ครบ ดูข้อผิดพลาดด้านล่าง', false);
-      }
-      toast(`นำเข้าพนักงานแล้ว ${ok.toLocaleString('th-TH')} แถว (พลาด ${fail.toLocaleString('th-TH')})`, ok>0 && !firstError);
-      const today = new Date().toISOString().slice(0,10);
-      await client.rpc('process_raw_scans', { p_from: today, p_to: today });
-      await refreshDashboard();
-    }
-
-    async function exportEmployees(fmt) {
-      const cols = 'employee_code,full_name,department,position,is_active,hire_date,resign_date,email,phone,manager_code';
-      const { data, error } = await client.from('employees').select(cols).order('employee_code');
-      if (error) { toast('อ่าน employees ล้มเหลว (อาจติด RLS)', false); return; }
-      if (!data?.length) { toast('ไม่มีข้อมูลพนักงาน', false); return; }
-
-      if (fmt === 'csv') {
-        const csv = Papa.unparse(data, { columns: cols.split(',') });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        triggerDownload(url, 'employees.csv');
-      } else {
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'employees');
-        const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([out], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
-        triggerDownload(url, 'employees.xlsx');
-      }
-    }
-
-    function downloadEmpTemplate() {
-      const headers = ['employee_code','full_name','department','position','is_active','hire_date','resign_date','email','phone','manager_code'];
-      const sample = [{
-        employee_code:'EMP001',
-        full_name:'สมชาย ใจดี',
-        department:'Assembly',
-        position:'Operator',
-        is_active:true,
-        hire_date:'2025-01-01',
-        resign_date:'',
-        email:'emp001@example.com',
-        phone:'+66800000001',
-        manager_code:'MGR01'
-      }];
-      const ws = XLSX.utils.json_to_sheet(sample, { header: headers });
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'template');
-      const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([out], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url, 'employees_template.xlsx');
-    }
-
-    function triggerDownload(url, filename) {
-      const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click();
-      setTimeout(()=>URL.revokeObjectURL(url), 1000);
-    }
-
-    function downloadEmpErrors() {
-      if (!empErrs.length) { toast('ไม่มี Error จากไฟล์ล่าสุด'); return; }
-      const csv = 'reason,raw_json\\n' + empErrs.map(e => `${e.reason},"${(JSON.stringify(e.row)||'').replace(/"/g,'""')}"`).join('\\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url,'employee_import_errors.csv');
-    }
-
-    // ===== i18n (TH/EN/JA) =====
-    const I18N = {
-      th: {
-        title: "Attendance & Leave Review System",
-        app_title: "ระบบจัดการเวลาเข้างานและการลา",
-        menu_dashboard: "แดชบอร์ด",
-        menu_import: "นำเข้าข้อมูล",
-        menu_attendance: "ตรวจสอบเวลาเข้างาน",
-        menu_leave: "จัดการการลา",
-        menu_corrections: "คำขอแก้ไข",
-        menu_reports: "รายงาน",
-        menu_settings: "ตั้งค่าระบบ",
-        dashboard_title: "แดชบอร์ดภาพรวม",
-        dashboard_subtitle: "สรุปข้อมูลเวลาเข้างานและการลาประจำวัน",
-        kpi_scan_rate: "อัตราการสแกนสำเร็จ",
-        kpi_scan_meta_prefix: "พนักงานทั้งหมด:",
-        people: "คน",
-        scanned: "มีสแกน:",
-        kpi_late: "มาสาย",
-        kpi_absent: "ขาดงาน",
-        kpi_pending: "คำขอรออนุมัติ",
-        pending_note: "แก้ไขเวลา + คำขอลา (pending)",
-        import_title: "นำเข้าข้อมูลจาก iVMS4200-AC",
-        import_subtitle: "อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
-        drop_here: "ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์",
-        accept_hint: "รองรับไฟล์ .csv .xlsx .xls ขนาดไม่เกิน 10MB",
-        choose_file: "เลือกไฟล์",
-        preview_title: "ตัวอย่างข้อมูล (50 แถวแรก)",
-        th_time: "เวลา",
-        th_empcode: "รหัสพนักงาน",
-        th_name: "ชื่อ",
-        th_dept: "แผนก",
-        th_type: "ประเภท",
-        th_device: "อุปกรณ์",
-        rows_ready: "รายการพร้อมนำเข้า",
-        download_error: "ดาวน์โหลด Error Log",
-        import_btn: "นำเข้าข้อมูล",
-        emp_title: "จัดการข้อมูลพนักงาน (employees)",
-        export_csv: "ส่งออก CSV",
-        export_xlsx: "ส่งออก XLSX",
-        download_template: "ดาวน์โหลด Template",
-        choose_emp_file: "เลือกไฟล์นำเข้า",
-        support_formats: "รองรับ .csv / .xlsx / .xls",
-        ready_to_import: "พร้อมนำเข้า:",
-        import_emp: "นำเข้าพนักงาน",
-        emp_db_error: "รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)"
-      },
-      en: {
-        title: "Attendance & Leave Review System",
-        app_title: "Attendance & Leave Review System",
-        menu_dashboard: "Dashboard",
-        menu_import: "Import",
-        menu_attendance: "Attendance",
-        menu_leave: "Leave",
-        menu_corrections: "Corrections",
-        menu_reports: "Reports",
-        menu_settings: "Settings",
-        dashboard_title: "Overview Dashboard",
-        dashboard_subtitle: "Daily summary of attendance and leave",
-        kpi_scan_rate: "Scan success rate",
-        kpi_scan_meta_prefix: "Total employees:",
-        people: "people",
-        scanned: "Scanned:",
-        kpi_late: "Late",
-        kpi_absent: "Absent",
-        kpi_pending: "Pending requests",
-        pending_note: "Time corrections + leave (pending)",
-        import_title: "Import from iVMS4200-AC",
-        import_subtitle: "Upload CSV/XLSX/XLS with columns <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
-        drop_here: "Drop file here or click to choose",
-        accept_hint: "Accept .csv .xlsx .xls up to 10MB",
-        choose_file: "Choose file",
-        preview_title: "Preview (first 50 rows)",
-        th_time: "Time",
-        th_empcode: "Employee Code",
-        th_name: "Name",
-        th_dept: "Department",
-        th_type: "Type",
-        th_device: "Device",
-        rows_ready: "rows ready",
-        download_error: "Download Error Log",
-        import_btn: "Import",
-        emp_title: "Manage Employees (employees)",
-        export_csv: "Export CSV",
-        export_xlsx: "Export XLSX",
-        download_template: "Download Template",
-        choose_emp_file: "Choose file to import",
-        support_formats: "Supports .csv / .xlsx / .xls",
-        ready_to_import: "Ready:",
-        import_emp: "Import employees",
-        emp_db_error: "Database error details (employees)"
-      },
-      ja: {
-        title: "出勤・休暇レビューシステム",
-        app_title: "出勤・休暇レビューシステム",
-        menu_dashboard: "ダッシュボード",
-        menu_import: "インポート",
-        menu_attendance: "出勤確認",
-        menu_leave: "休暇管理",
-        menu_corrections: "修正申請",
-        menu_reports: "レポート",
-        menu_settings: "設定",
-        dashboard_title: "概要ダッシュボード",
-        dashboard_subtitle: "出勤と休暇の毎日のサマリー",
-        kpi_scan_rate: "スキャン成功率",
-        kpi_scan_meta_prefix: "従業員合計:",
-        people: "人",
-        scanned: "スキャン済み:",
-        kpi_late: "遅刻",
-        kpi_absent: "欠勤",
-        kpi_pending: "承認待ち",
-        pending_note: "時間修正 + 休暇 (保留)",
-        import_title: "iVMS4200-AC からインポート",
-        import_subtitle: "次の列を含む CSV/XLSX/XLS をアップロード <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
-        drop_here: "ここにファイルをドロップ、またはクリックして選択",
-        accept_hint: "CSV / XLSX / XLS（最大10MB）をサポート",
-        choose_file: "ファイルを選択",
-        preview_title: "プレビュー（最初の50行）",
-        th_time: "時間",
-        th_empcode: "社員コード",
-        th_name: "氏名",
-        th_dept: "部門",
-        th_type: "区分",
-        th_device: "装置",
-        rows_ready: "件の準備完了",
-        download_error: "エラーログをダウンロード",
-        import_btn: "インポート",
-        emp_title: "従業員管理（employees）",
-        export_csv: "CSV 出力",
-        export_xlsx: "XLSX 出力",
-        download_template: "テンプレートをダウンロード",
-        choose_emp_file: "インポートするファイルを選択",
-        support_formats: "CSV / XLSX / XLS 対応",
-        ready_to_import: "準備：",
-        import_emp: "従業員をインポート",
-        emp_db_error: "データベースエラーの詳細（従業員）"
-      }
-    };
-
-    function applyI18n(lang){
-      const dict = I18N[lang] || I18N.th;
-      document.title = dict.title || document.title;
-      document.documentElement.lang = lang;
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        const html = dict[key];
-        if (html == null) return;
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-          el.placeholder = html;
-        } else {
-          el.innerHTML = html;
-        }
-      });
-      const dateEl = document.getElementById('currentDate');
-      if (dateEl) {
-        const locales = { th:'th-TH', en:'en-US', ja:'ja-JP' };
-        dateEl.textContent = new Date().toLocaleDateString(locales[lang] || 'th-TH', { year:'numeric', month:'long', day:'numeric' });
-      }
-      localStorage.setItem('lang', lang);
-      try{document.querySelectorAll('#langSwitch .lang-btn').forEach(btn=>btn.classList.toggle('active', btn.getAttribute('data-lang')===lang));}catch(e){}
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const sw = document.getElementById('langSwitch');
-      if (sw) {
-        sw.addEventListener('click', (e) => {
-          const btn = e.target.closest('button[data-lang]');
-          if(!btn) return;
-          applyI18n(btn.getAttribute('data-lang'));
+        (activeEmps || []).forEach(e => { ensure(e.department || '(ไม่ระบุ)').total++; });
+        (dayRows || []).forEach(r => {
+          const d = r.department || '(ไม่ระบุ)';
+          const o = ensure(d);
+          if (r.status === 'present') o.present++;
+          else if (r.status === 'late') o.late++;
+          else if (r.status === 'absent') o.absent++;
+          else if (r.status === 'missing_out') o.present++; // counted as present for headcount
         });
-      }
-      applyI18n(localStorage.getItem('lang') || 'th');
-    });
+        (absentRows || []).forEach(a => {
+          const o = ensure(a.department || '(ไม่ระบุ)');
+          o.absent++;
+        });
 
-    // ===== Absent detail helpers =====
+        const rows = Array.from(mp.entries()).sort((a,b)=> a[0].localeCompare(b[0],'th-TH'));
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-gray-500">ไม่มีข้อมูล</td></tr>';
+        } else {
+          let totP=0, totL=0, totA=0, totAll=0;
+          tbody.innerHTML = rows.map(([dept, v]) => {
+            totP+=v.present; totL+=v.late; totA+=v.absent; totAll+=v.total;
+            return `
+            <tr>
+              <td class="px-3 py-2">${dept}</td>
+              <td class="px-3 py-2 text-right text-emerald-700">${v.present}</td>
+              <td class="px-3 py-2 text-right text-amber-700">${v.late}</td>
+              <td class="px-3 py-2 text-right text-rose-700">${v.absent}</td>
+              <td class="px-3 py-2 text-right font-semibold">${v.total}</td>
+            </tr>`;
+          }).join('');
+          document.getElementById('deptTotalPresent').textContent = totP;
+          document.getElementById('deptTotalLate').textContent = totL;
+          document.getElementById('deptTotalAbsent').textContent = totA;
+          document.getElementById('deptTotalAll').textContent = totAll;
+        }
+      } catch (e) {
+        console.warn('renderDeptSummary error', e);
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-red-600">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+      }
+    }
+
+    // ===== Absent detail using "no check-in" logic =====
     async function getActiveWorkDate() {
       try {
         const { data, error } = await client
@@ -1077,26 +762,16 @@
       tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-gray-500">กำลังโหลดข้อมูล...</td></tr>';
       document.getElementById('absentDate').textContent = date;
 
-      const { data, error } = await client
-        .from('attendance_days')
-        .select('department, employee_code')
-        .eq('work_date', date)
-        .eq('status', 'absent')
-        .order('department', { ascending: true })
-        .order('employee_code', { ascending: true })
-        .limit(10000);
-
-      if (error) {
-        tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-3 text-red-600">โหลดข้อมูลไม่สำเร็จ</td></tr>';
-        return;
-      }
+      const activeEmps = await fetchActiveEmployees();
+      const dayRows = await fetchDayRows(date);
+      const { absentRows } = buildAbsentList(activeEmps, dayRows);
 
       try {
-        const codes = (data||[]).map(r => r.employee_code).filter(Boolean);
+        const codes = (absentRows||[]).map(r => r.employee_code).filter(Boolean);
         const nameMap = await _buildNameMap(codes);
-        _ABSENT_CACHE = (data||[]).map(r => ({ ...r, full_name: nameMap.get(r.employee_code) || '' }));
+        _ABSENT_CACHE = (absentRows||[]).map(r => ({ ...r, full_name: nameMap.get(r.employee_code) || r.full_name || '' }));
       } catch(e){
-        _ABSENT_CACHE = data || [];
+        _ABSENT_CACHE = absentRows || [];
       }
       fillAbsentFilters(_ABSENT_CACHE);
       renderAbsentTable();
@@ -1152,6 +827,216 @@
         `).join('');
       }
     }
+
+    // ===== i18n (TH/EN/JA) =====
+    const I18N = {
+      th: {
+        title: "Attendance & Leave Review System",
+        app_title: "ระบบจัดการเวลาเข้างานและการลา",
+        menu_dashboard: "แดชบอร์ด",
+        menu_import: "นำเข้าข้อมูล",
+        menu_attendance: "ตรวจสอบเวลาเข้างาน",
+        menu_leave: "จัดการการลา",
+        menu_corrections: "คำขอแก้ไข",
+        menu_reports: "รายงาน",
+        menu_settings: "ตั้งค่าระบบ",
+        dashboard_title: "แดชบอร์ดภาพรวม",
+        dashboard_subtitle: "สรุปข้อมูลเวลาเข้างานและการลาประจำวัน",
+        kpi_scan_rate: "อัตราการสแกนสำเร็จ",
+        kpi_scan_meta_prefix: "พนักงานทั้งหมด:",
+        people: "คน",
+        scanned: "มีสแกน:",
+        kpi_late: "มาสาย",
+        kpi_absent: "ขาดงาน",
+        kpi_pending: "คำขอรออนุมัติ",
+        pending_note: "แก้ไขเวลา + คำขอลา (pending)",
+        import_title: "นำเข้าข้อมูลจาก iVMS4200-AC",
+        import_subtitle: "อัปโหลดไฟล์ CSV/XLSX/XLS ที่มีคอลัมน์ <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
+        drop_here: "ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์",
+        accept_hint: "รองรับไฟล์ .csv .xlsx .xls ขนาดไม่เกิน 10MB",
+        choose_file: "เลือกไฟล์",
+        preview_title: "ตัวอย่างข้อมูล (50 แถวแรก)",
+        th_time: "เวลา",
+        th_empcode: "รหัสพนักงาน",
+        th_name: "ชื่อ",
+        th_dept: "แผนก",
+        th_type: "ประเภท",
+        th_device: "อุปกรณ์",
+        rows_ready: "รายการพร้อมนำเข้า",
+        download_error: "ดาวน์โหลด Error Log",
+        import_btn: "นำเข้าข้อมูล",
+        emp_title: "จัดการข้อมูลพนักงาน (employees)",
+        export_csv: "ส่งออก CSV",
+        export_xlsx: "ส่งออก XLSX",
+        download_template: "ดาวน์โหลด Template",
+        choose_emp_file: "เลือกไฟล์นำเข้า",
+        support_formats: "รองรับ .csv / .xlsx / .xls",
+        ready_to_import: "พร้อมนำเข้า:",
+        import_emp: "นำเข้าพนักงาน",
+        emp_db_error: "รายละเอียดข้อผิดพลาดจากฐานข้อมูล (employees)",
+        dept_summary_title: "สรุปตามแผนก",
+        date_label: "วันที่:",
+        table_dept: "แผนก",
+        table_present: "มาทำงาน",
+        table_late: "มาสาย",
+        table_absent: "ขาดงาน",
+        table_total: "รวม",
+        grand_total: "รวมทั้งหมด",
+        absent_list_title: "รายชื่อขาดงาน (ไม่มี Check-in)",
+        search_name: "ค้นหาชื่อ/รหัสพนักงาน",
+        total_label: "รวม",
+        hide_table: "ซ่อนตาราง"
+      },
+      en: {
+        title: "Attendance & Leave Review System",
+        app_title: "Attendance & Leave Review System",
+        menu_dashboard: "Dashboard",
+        menu_import: "Import",
+        menu_attendance: "Attendance",
+        menu_leave: "Leave",
+        menu_corrections: "Corrections",
+        menu_reports: "Reports",
+        menu_settings: "Settings",
+        dashboard_title: "Overview Dashboard",
+        dashboard_subtitle: "Daily summary of attendance and leave",
+        kpi_scan_rate: "Scan success rate",
+        kpi_scan_meta_prefix: "Total employees:",
+        people: "people",
+        scanned: "Scanned:",
+        kpi_late: "Late",
+        kpi_absent: "Absent",
+        kpi_pending: "Pending requests",
+        pending_note: "Time corrections + leave (pending)",
+        import_title: "Import from iVMS4200-AC",
+        import_subtitle: "Upload CSV/XLSX/XLS with columns <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
+        drop_here: "Drop file here or click to choose",
+        accept_hint: "Accept .csv .xlsx .xls up to 10MB",
+        choose_file: "Choose file",
+        preview_title: "Preview (first 50 rows)",
+        th_time: "Time",
+        th_empcode: "Employee Code",
+        th_name: "Name",
+        th_dept: "Department",
+        th_type: "Type",
+        th_device: "Device",
+        rows_ready: "rows ready",
+        download_error: "Download Error Log",
+        import_btn: "Import",
+        emp_title: "Manage Employees (employees)",
+        export_csv: "Export CSV",
+        export_xlsx: "Export XLSX",
+        download_template: "Download Template",
+        choose_emp_file: "Choose file to import",
+        support_formats: "Supports .csv / .xlsx / .xls",
+        ready_to_import: "Ready:",
+        import_emp: "Import employees",
+        emp_db_error: "Database error details (employees)",
+        dept_summary_title: "Department summary",
+        date_label: "Date:",
+        table_dept: "Department",
+        table_present: "Present",
+        table_late: "Late",
+        table_absent: "Absent",
+        table_total: "Total",
+        grand_total: "Grand total",
+        absent_list_title: "Absent list (no check-in)",
+        search_name: "Search name / code",
+        total_label: "Total",
+        hide_table: "Hide table"
+      },
+      ja: {
+        title: "出勤・休暇レビューシステム",
+        app_title: "出勤・休暇レビューシステム",
+        menu_dashboard: "ダッシュボード",
+        menu_import: "インポート",
+        menu_attendance: "出勤確認",
+        menu_leave: "休暇管理",
+        menu_corrections: "修正申請",
+        menu_reports: "レポート",
+        menu_settings: "設定",
+        dashboard_title: "概要ダッシュボード",
+        dashboard_subtitle: "出勤と休暇の毎日のサマリー",
+        kpi_scan_rate: "スキャン成功率",
+        kpi_scan_meta_prefix: "従業員合計:",
+        people: "人",
+        scanned: "スキャン済み:",
+        kpi_late: "遅刻",
+        kpi_absent: "欠勤",
+        kpi_pending: "承認待ち",
+        pending_note: "時間修正 + 休暇 (保留)",
+        import_title: "iVMS4200-AC からインポート",
+        import_subtitle: "次の列を含む CSV/XLSX/XLS をアップロード <span class='mono'>Person ID, Name, Department, Date, Check-In, Check-out</span>",
+        drop_here: "ここにファイルをドロップ、またはクリックして選択",
+        accept_hint: "CSV / XLSX / XLS（最大10MB）をサポート",
+        choose_file: "ファイルを選択",
+        preview_title: "プレビュー（最初の50行）",
+        th_time: "時間",
+        th_empcode: "社員コード",
+        th_name: "氏名",
+        th_dept: "部門",
+        th_type: "区分",
+        th_device: "装置",
+        rows_ready: "件の準備完了",
+        download_error: "エラーログをダウンロード",
+        import_btn: "インポート",
+        emp_title: "従業員管理（employees）",
+        export_csv: "CSV 出力",
+        export_xlsx: "XLSX 出力",
+        download_template: "テンプレートをダウンロード",
+        choose_emp_file: "インポートするファイルを選択",
+        support_formats: "CSV / XLSX / XLS 対応",
+        ready_to_import: "準備：",
+        import_emp: "従業員をインポート",
+        emp_db_error: "データベースエラーの詳細（従業員）",
+        dept_summary_title: "部門別サマリー",
+        date_label: "日付:",
+        table_dept: "部門",
+        table_present: "出勤",
+        table_late: "遅刻",
+        table_absent: "欠勤",
+        table_total: "合計",
+        grand_total: "合計",
+        absent_list_title: "欠勤者一覧（チェックインなし）",
+        search_name: "氏名／社員コードで検索",
+        total_label: "合計",
+        hide_table: "表を隠す"
+      }
+    };
+
+    function applyI18n(lang){
+      const dict = I18N[lang] || I18N.th;
+      document.title = dict.title || document.title;
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const html = dict[key];
+        if (html == null) return;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+          el.placeholder = html;
+        } else {
+          el.innerHTML = html;
+        }
+      });
+      const dateEl = document.getElementById('currentDate');
+      if (dateEl) {
+        const locales = { th:'th-TH', en:'en-US', ja:'ja-JP' };
+        dateEl.textContent = new Date().toLocaleDateString(locales[lang] || 'th-TH', { year:'numeric', month:'long', day:'numeric' });
+      }
+      localStorage.setItem('lang', lang);
+      try{document.querySelectorAll('#langSwitch .lang-btn').forEach(btn=>btn.classList.toggle('active', btn.getAttribute('data-lang')===lang));}catch(e){}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sw = document.getElementById('langSwitch');
+      if (sw) {
+        sw.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-lang]');
+          if(!btn) return;
+          applyI18n(btn.getAttribute('data-lang'));
+        });
+      }
+      applyI18n(localStorage.getItem('lang') || 'th');
+    });
   </script>
 </body>
 </html>
