@@ -354,7 +354,7 @@
       let iso = parseDateSmart(s);
       if (iso) return iso;
       if (/^\d{5}$|^\d{6}$/.test(s)) return excelSerialToISO(Number(s));
-      const digits = s.replace(/\D/g,');
+      const digits = s.replace(/\D/g,'');
       if (digits.length === 8) { // ddmmyyyy
         const d = digits.slice(0,2), m = digits.slice(2,4), y = digits.slice(4);
         return `${y}-${m}-${d}`;
@@ -379,7 +379,7 @@
       const h = (parts[0]||'00').padStart(2,'0');
       const m = (parts[1]||'00').padStart(2,'0');
       const s = (parts[2]||'00').padStart(2,'0');
-      return `${dateISO}T${h}:${m}:${s}Z';
+      return `${dateISO}T${h}:${m}:${s}Z`;
     }
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = (val ?? '—'); }
 
