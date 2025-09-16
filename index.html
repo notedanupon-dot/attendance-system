@@ -296,24 +296,8 @@
           <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls">
           <button id="chooseFileBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"><span data-i18n="choose_file">เลือกไฟล์</span></button>
         </div>
-      
-  </div>
-  <div class="flex items-center gap-4 mt-4">
-    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-      <input id="optBuildAttendance" type="checkbox" class="w-4 h-4">
-      <span data-i18n="opt_build_att">สร้างสรุปการเข้างาน (attendance_days) อัตโนมัติ</span>
-    </label>
-    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-      <span data-i18n="late_cutoff">เวลาเข้างานสายหลัง</span>
-      <input id="lateCutoff" type="time" value="08:15" class="border rounded px-2 py-1">
-    </label>
-    <button id="btnImportUpload" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-60" disabled>
-      <span data-i18n="upload_btn">อัปโหลดเข้าสู่ระบบ</span>
-    </button>
-  </div>
-</div>
-<div id="filePreview"
- class="bg-white rounded-xl shadow-sm p-6 hidden">
+      </div>
+      <div id="filePreview" class="bg-white rounded-xl shadow-sm p-6 hidden">
         <h3 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="preview_title">ตัวอย่างข้อมูล (50 แถวแรก)</h3>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -414,48 +398,33 @@
 
     // ===== Helpers for ABSENT by "no check-in" =====
     async function fetchActiveEmployees(dateFor){
-  // Return { list: [{employee_code,department,full_name,is_active}], source }
-  // Try employees table first (select * to avoid 400 when column names differ)
-  try {
-    const { data, error } = await client.from('employees')
-      .select('*')
-      .limit(10000);
-    if (error) throw error;
-    const list = (data||[]).map(e => ({
-      employee_code: e.employee_code || e.code || e.person_id || e.emp_id || e.empcode || e.emp_code || e.person_code || null,
-      department: e.department || e.dept || e.division || '',
-      full_name: e.full_name || e.name || e.emp_name || '',
-      is_active: (typeof e.is_active === 'boolean') ? e.is_active 
-                : (typeof e.active === 'boolean') ? e.active 
-                : (e.status ? String(e.status).toLowerCase() !== 'inactive' : true)
-    })).filter(r => r.employee_code).filter(r => r.is_active !== false);
-    if (list.length > 0) return { list, source: 'employees' };
-  } catch(e){
-    console.info('[absent] employees table not accessible:', e?.message || e);
-  }
-  // Fallback: derive the active list from attendance_days over the last 60 days
-  const endDate = (dateFor || new Date().toISOString().slice(0,10));
-  const startDate = new Date(Date.parse(endDate) - 59*86400000).toISOString().slice(0,10);
-  try {
-    const { data, error } = await client.from('attendance_days')
-      .select('employee_code,department')
-      .gte('work_date', startDate)
-      .lte('work_date', endDate)
-      .limit(100000);
-    if (error) throw error;
-    const mp = new Map();
-    (data||[]).forEach(r => {
-      if (!r.employee_code) return;
-      if (!mp.has(r.employee_code)){
-        mp.set(r.employee_code, { employee_code: r.employee_code, department: r.department || '', full_name: '', is_active: true });
+      try {
+        const { data, error } = await client.from('employees')
+          .select('employee_code,department,full_name,is_active');
+        if (error) throw error;
+        const arr = (data||[]).filter(e => e.is_active !== false);
+        if (arr.length > 0) return { list: arr, source: 'employees' };
+      } catch(e) {
+        console.info('[absent] employees table not accessible, fallback to attendance_days window.');
       }
-    });
-    return { list: Array.from(mp.values()), source: 'attendance_days' };
-  } catch(e){
-    console.warn('[absent] fallback also failed:', e?.message || e);
-    return { list: [], source: 'none' };
-  }
-}
+      const end = dateFor || new Date().toISOString().slice(0,10);
+      const start = new Date(Date.parse(end) - 59*86400000).toISOString().slice(0,10);
+      try {
+        const { data, error } = await client.from('attendance_days')
+          .select('employee_code,department')
+          .gte('work_date', start)
+          .lte('work_date', end)
+          .limit(100000);
+        if (error) throw error;
+        const mp = new Map();
+        (data||[]).forEach(r => {
+          if (!mp.has(r.employee_code)) mp.set(r.employee_code, { employee_code: r.employee_code, department: r.department || '', full_name: '', is_active: true });
+        });
+        return { list: Array.from(mp.values()), source: 'attendance_days' };
+      } catch(e) {
+        return { list: [], source: 'none' };
+      }
+    }
 
     async function fetchDayRows(dateISO){
       const { data, error } = await client.from('attendance_days')
@@ -513,43 +482,12 @@
         const latestDay = latestRows?.[0] ? new Date(latestRows[0].event_time).toISOString().slice(0,10)
                                           : new Date().toISOString().slice(0,10);
 
-        try { await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay }); } catch(e){ console.info('rpc process_raw_scans skipped', e?.message || e); }
+        await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay });
 
         const { list: activeEmps, source: empSource } = await fetchActiveEmployees(latestDay);
         const totalEmp = activeEmps.length;
 
-        let dayRows = await fetchDayRows(latestDay);
-        if (!dayRows || dayRows.length === 0) {
-          // Fallback: build from raw_scans first-in
-          const tzMin = -new Date().getTimezoneOffset();
-          const tzSign = tzMin>=0?'+':'-';
-          const tzh = String(Math.floor(Math.abs(tzMin)/60)).padStart(2,'0');
-          const tzm = String(Math.abs(tzMin)%60).padStart(2,'0');
-          const tzOffset = `${tzSign}${tzh}:${tzm}`;
-          const startISO = latestDay + 'T00:00:00' + tzOffset;
-          const nextDay = new Date(Date.parse(latestDay) + 86400000).toISOString().slice(0,10);
-          const endISO = nextDay + 'T00:00:00' + tzOffset;
-          const { data: scans, error: e1 } = await client.from('raw_scans')
-            .select('employee_code,department,event_time,direction')
-            .gte('event_time', startISO).lt('event_time', endISO)
-            .limit(100000);
-          if (!e1) {
-            const mp = new Map();
-            (scans||[]).forEach(s => {
-              if (s.direction !== 'IN') return;
-              const code = s.employee_code;
-              const t = s.event_time.slice(11,16);
-              if (!mp.has(code) || t < mp.get(code)) mp.set(code,t);
-            });
-            const cutoff = (document.getElementById('lateCutoff')?.value || '08:15');
-            dayRows = Array.from(mp.keys()).map(code => {
-              const dep = (scans||[]).find(x => x.employee_code===code)?.department || '';
-              const status = (mp.get(code) > cutoff) ? 'late' : 'present';
-              return { work_date: latestDay, employee_code: code, department: dep, status };
-            });
-          }
-        }
-    
+        const dayRows = await fetchDayRows(latestDay);
         const countsRaw = { present:0, late:0, absent:0, missing_out:0 };
         (dayRows || []).forEach(r => countsRaw[(r.status||'').toLowerCase()] = (countsRaw[(r.status||'').toLowerCase()] || 0) + 1);
 
@@ -650,7 +588,8 @@
       const uniq = Array.from(new Set(codes));
       try {
         const { data: emps } = await client
-          .from('employees').select('*')
+          .from('employees')
+          .select('employee_code, full_name')
           .in('employee_code', uniq)
           .limit(10000);
         const mp = new Map();
@@ -670,6 +609,7 @@
             const nm = (s?.full_name ?? '').toString().trim();
             if (nm) mp.set(s.employee_code, nm);
           });
+        mp.forEach((o, code) => { if (!o.first_in) o.first_in = (typeof firstIn.get==='function'? firstIn.get(code): null) || o.first_in || null; if (!o.last_out) o.last_out = (typeof lastOut.get==='function'? lastOut.get(code): null) || o.last_out || null; });
         }
         return mp;
       } catch(e) {
@@ -796,9 +736,7 @@
       tb.innerHTML = on ? '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">กำลังโหลดข้อมูล...</td></tr>' : "";
     }
     function attToDayRangeISO(dateISO){
-      const s = new Date(dateISO + "T00:00:00");
-      const e = new Date(s.getTime() + 86400000);
-      return { from: s.toISOString(), to: e.toISOString() };
+      const s = new Date(dateISO + 'T00:00:00'); const tzMin = -s.getTimezoneOffset(); const sign = tzMin>=0?'+':'-'; const h = String(Math.floor(Math.abs(tzMin)/60)).padStart(2,'0'); const m = String(Math.abs(tzMin)%60).padStart(2,'0'); const off = `${sign}${h}:${m}`; const from = dateISO + 'T00:00:00' + off; const to = new Date(s.getTime()+86400000).toISOString().slice(0,10) + 'T00:00:00' + off; return { from, to };
     }
     async function attLoadDepartments(){
       try {
@@ -828,23 +766,55 @@
           .select("employee_code, department, status")
           .eq("work_date", dateISO)
           .limit(200000);
-        const statusMap = new Map();
-        (days||[]).forEach(r => statusMap.set(r.employee_code, (r.status||"").toLowerCase()));
+        // prepare maps for first_in/last_out (will fill after fetching scans)
+        const firstIn = new Map();
+        const lastOut = new Map();
 
-        // raw scans during the day
+        // raw scans during the day - fetch first to compute INS/OUTS
         const { data: scans } = await client.from("raw_scans")
           .select("employee_code, full_name, department, direction, event_time")
           .gte("event_time", from).lt("event_time", to)
           .in("direction", ["IN","OUT"])
           .limit(200000);
+
+        // compute first_in/last_out map from scans
+        (scans||[]).forEach(s => {
+          if (!s || !s.employee_code) return;
+          const code = s.employee_code;
+          if (s.direction === 'IN') {
+            const t = s.event_time;
+            if (!firstIn.has(code) || t < firstIn.get(code)) firstIn.set(code, t);
+          } else if (s.direction === 'OUT') {
+            const t = s.event_time;
+            if (!lastOut.has(code) || t > lastOut.get(code)) lastOut.set(code, t);
+          }
+        });
+
+        // Build computed day rows from raw_scans if attendance_days is missing
+        const cutoff = (document.getElementById('lateCutoff')?.value || '08:15');
+        const computed = Array.from(firstIn.keys()).map(code => {
+          const t = firstIn.get(code).slice(11,16);
+          const status = (t > cutoff) ? 'late' : 'present';
+          return { employee_code: code, status, department: (scans||[]).find(x => x.employee_code===code)?.department || '' };
+        });
+
+        // merge DB days with computed (use DB first)
+        const dayByCode = new Map();
+        (days||[]).forEach(r => dayByCode.set(r.employee_code, r));
+        (computed||[]).forEach(r => { if (!dayByCode.has(r.employee_code)) dayByCode.set(r.employee_code, r); });
+        const mergedDays = Array.from(dayByCode.values());
+
+        // rebuild statusMap from merged (declare once)
+        const statusMap = new Map();
+        (mergedDays||[]).forEach(r => statusMap.set(r.employee_code, (r.status||'').toLowerCase()));
+
+        // build mp of combined rows using scans and computed data
         const mp = new Map();
         (scans||[]).forEach(s => {
           const key = s.employee_code;
           const o = mp.get(key) || { employee_code: key, full_name: s.full_name, department: s.department, first_in: null, last_out: null, status: statusMap.get(key) || "" };
-          if (s.direction === "IN") {
-            if (!o.first_in || s.event_time < o.first_in) o.first_in = s.event_time;
-          } else if (s.direction === "OUT") {
-            if (!o.last_out || s.event_time > o.last_out) o.last_out = s.event_time;
+          if (s.direction === "IN") { o.first_in = firstIn.get(key) || o.first_in || null;
+          } else if (s.direction === "OUT") { o.last_out = lastOut.get(key) || o.last_out || null;
           }
           if (!o.full_name && s.full_name) o.full_name = s.full_name;
           if (!o.department && s.department) o.department = s.department;
@@ -853,7 +823,7 @@
 
         // include ABSENT rows
         const { list: activeEmps } = await fetchActiveEmployees(dateISO);
-        const { absentRows } = buildAbsentList(activeEmps, days || []);
+        const { absentRows } = buildAbsentList(activeEmps, mergedDays || []);
         const codes = (absentRows||[]).map(r=>r.employee_code).filter(Boolean);
         const nameMap = await _buildNameMap(codes);
         (absentRows||[]).forEach(a => {
@@ -1010,10 +980,7 @@
         absent_list_title: "รายชื่อไม่มาทำงาน (ไม่มี Check-in)",
         search_name: "ค้นหาชื่อ/รหัสพนักงาน",
         total_label: "รวม",
-        hide_table: "ซ่อนตาราง",
-        opt_build_att: "สร้างสรุปการเข้างาน (attendance_days) อัตโนมัติ",
-        late_cutoff: "เวลาเข้างานสายหลัง",
-        upload_btn: "อัปโหลดเข้าสู่ระบบ",
+        hide_table: "ซ่อนตาราง"
       },
       en: {
         title: "Attendance & Leave Review System",
@@ -1061,10 +1028,7 @@
         absent_list_title: "No attendance list (no check-in)",
         search_name: "Search name / code",
         total_label: "Total",
-        hide_table: "Hide table",
-        opt_build_att: "Build attendance summary automatically",
-        late_cutoff: "Late if after",
-        upload_btn: "Upload",
+        hide_table: "Hide table"
       },
       ja: {
         title: "出勤・休暇レビューシステム",
@@ -1150,247 +1114,6 @@
       }
       applyI18n(localStorage.getItem('lang') || 'th');
     });
-
-// ===== Import Handlers =====
-(function initImport(){
-  const $id = (s)=>document.getElementById(s);
-
-  const area = $id('uploadArea');
-  const fileInput = $id('fileInput');
-  const chooseBtn = $id('chooseFileBtn');
-  const previewBox = $id('filePreview');
-  const previewBody = $id('previewTableBody');
-  const uploadBtn = $id('btnImportUpload');
-  const optBuild = $id('optBuildAttendance');
-  const lateCutoff = $id('lateCutoff');
-
-  let parsed = []; // normalized rows
-
-  function toastOK(t){ toast(t, true); }
-  function toastNG(t){ toast(t, false); }
-
-  function showPreview(rows){
-    previewBody.innerHTML = rows.slice(0,50).map(r => {
-      const time = [r.checkIn || '-', r.checkOut || '-'].join(' / ');
-      return `<tr>
-        <td class="px-6 py-2 text-sm">${time}</td>
-        <td class="px-6 py-2 text-sm">${r.employee_code||'-'}</td>
-        <td class="px-6 py-2 text-sm">${r.full_name||'-'}</td>
-        <td class="px-6 py-2 text-sm">${r.department||'-'}</td>
-        <td class="px-6 py-2 text-sm">${r.type || '-'}</td>
-        <td class="px-6 py-2 text-sm">${r.device || '-'}</td>
-      </tr>`;
-    }).join('');
-    previewBox.classList.remove('hidden');
-    uploadBtn.disabled = rows.length === 0;
-  }
-
-  function normalizeHeaders(h){
-    const map = {};
-    h.forEach((raw, idx)=>{
-      const k = (raw||'').toString().trim().toLowerCase();
-      if(!k) return;
-      if (/^person(\s*|\_)?(id|no|code|number)/.test(k) || /(employee|emp).*?(id|code|no)/.test(k)) map[idx]='employee_code';
-      else if (/^name$/.test(k) || /(full).*name/.test(k) || /ชื่อ$/.test(k)) map[idx]='full_name';
-      else if (/^dept|department$/.test(k) || /แผนก$/.test(k)) map[idx]='department';
-      else if (/(^date$|work.*date|วันที่)/.test(k)) map[idx]='dateISO';
-      else if (/(check.?in|time.?in|in\s*time|first\s*in)/.test(k)) map[idx]='checkIn';
-      else if (/(check.?out|time.?out|out\s*time|last\s*out)/.test(k)) map[idx]='checkOut';
-      else if (/(device|reader|terminal|ap)/.test(k)) map[idx]='device';
-      else if (/(type|event)/.test(k)) map[idx]='type';
-    });
-    return map;
-  }
-
-  function toDateISO(v){
-    if(!v) return null;
-    if (v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
-    const s = v.toString().trim();
-    const m1 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})$/);
-    if (m1) {
-      let [_, d, mo, y] = m1;
-      if (y.length === 2) y = (Number(y) >= 70 ? '19' : '20') + y;
-      const dt = new Date(+y, +mo-1, +d);
-      if(!isNaN(dt)) return dt.toISOString().slice(0,10);
-    }
-    const m2 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (m2) {
-      const [_, y, mo, d] = m2;
-      const dt = new Date(+y, +mo-1, +d);
-      if(!isNaN(dt)) return dt.toISOString().slice(0,10);
-    }
-    if(/^\d{4,6}$/.test(s)){ // Excel serial
-      const epoch = new Date(Date.UTC(1899,11,30));
-      const dt = new Date(epoch.getTime() + (Number(s)||0)*86400000);
-      return dt.toISOString().slice(0,10);
-    }
-    const dt = new Date(s);
-    return isNaN(dt) ? null : dt.toISOString().slice(0,10);
-  }
-
-  function normTime(v){
-    if(!v) return null;
-    let s = v.toString().trim();
-    if(/^\d{3,4}$/.test(s)){ // 815 or 0815
-      s = s.padStart(4,'0'); return s.slice(0,2)+':'+s.slice(2,4);
-    }
-    const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-    if(m){ return (m[1].padStart(2,'0')+':'+m[2]).slice(0,5); }
-    return null;
-  }
-
-  async function parseFile(file){
-    const ext = (file.name.split('.').pop()||'').toLowerCase();
-    const rows = [];
-    function commit(headers, records){
-      const headerMap = normalizeHeaders(headers);
-      records.forEach(rec => {
-        const cells = Array.isArray(rec) ? rec : headers.map(h => rec[h]);
-        const obj = {};
-        cells.forEach((val, i) => { const key = headerMap[i]; if(!key) return; obj[key] = val; });
-        const r = {
-          employee_code: (obj.employee_code ?? '').toString().trim(),
-          full_name: (obj.full_name ?? '').toString().trim(),
-          department: (obj.department ?? '').toString().trim(),
-          dateISO: toDateISO(obj.dateISO),
-          checkIn: normTime(obj.checkIn),
-          checkOut: normTime(obj.checkOut),
-          device: (obj.device ?? '').toString().trim(),
-          type: (obj.type ?? '').toString().trim()
-        };
-        if (r.employee_code && r.dateISO) rows.push(r);
-      });
-    }
-    if (ext === 'csv'){
-      await new Promise((resolve,reject)=>{
-        Papa.parse(file, {
-          complete: (res)=>{
-            if(res && res.data && res.data.length){
-              const headers = res.data[0];
-              const body = res.data.slice(1).filter(r => (r||[]).some(x=>String(x||'').trim()));
-              commit(headers, body);
-            }
-            resolve();
-          },
-          error: reject
-        });
-      });
-    } else {
-      const data = await file.arrayBuffer();
-      const wb = XLSX.read(new Uint8Array(data), { type:'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(ws, { header:1, raw:true });
-      const headers = (json[0]||[]).map(x => (x||'').toString());
-      const body = json.slice(1).filter(r => (r||[]).some(x=>String(x||'').trim()));
-      commit(headers, body);
-    }
-    parsed = rows;
-    showPreview(rows);
-    toastOK(`โหลดข้อมูล ${rows.length} แถว`);
-  }
-
-  function bindDrag(){
-    if(!area) return;
-    area.addEventListener('dragover', (e)=>{ e.preventDefault(); area.classList.add('border-blue-400'); });
-    area.addEventListener('dragleave', ()=> area.classList.remove('border-blue-400'));
-    area.addEventListener('drop', (e)=>{
-      e.preventDefault();
-      area.classList.remove('border-blue-400');
-      const f = e.dataTransfer.files?.[0];
-      if (f) parseFile(f);
-    });
-    area.addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', ()=>{
-      const f = fileInput.files?.[0];
-      if (f) parseFile(f);
-    });
-    chooseBtn?.addEventListener('click', ()=> fileInput.click());
-  }
-
-  async function uploadToSupabase(){
-    if(!parsed.length){ toastNG('ไม่มีข้อมูลสำหรับอัปโหลด'); return; }
-    uploadBtn.disabled = true;
-    try {
-      const scanRows = [];
-            const tzMin = -new Date().getTimezoneOffset();
-            const tzSign = tzMin>=0?'+':'-';
-            const tzh = String(Math.floor(Math.abs(tzMin)/60)).padStart(2,'0');
-            const tzm = String(Math.abs(tzMin)%60).padStart(2,'0');
-            const tzOffset = `${tzSign}${tzh}:${tzm}`;
-      let minDate = null, maxDate = null;
-
-      parsed.forEach(r => {
-        const base = { employee_code: r.employee_code, full_name: r.full_name || null, department: r.department || null };
-        function push(direction, time){
-          if (!time) return;
-          const iso = r.dateISO + 'T' + time + ':00' + tzOffset;
-          const d = r.dateISO;
-          minDate = !minDate || d < minDate ? d : minDate;
-          maxDate = !maxDate || d > maxDate ? d : maxDate;
-          scanRows.push({ ...base, direction, event_time: iso });
-        }
-        push('IN', r.checkIn);
-        push('OUT', r.checkOut);
-      });
-
-      async function chunkInsert(table, rows, size=500){
-        for(let i=0;i<rows.length;i+=size){
-          const batch = rows.slice(i, i+size);
-          const { error } = await client.from(table).insert(batch);
-          if (error) throw error;
-        }
-      }
-
-      if (scanRows.length){
-        await chunkInsert('raw_scans', scanRows);
-      }
-
-      // ถ้ามี Stored Procedure สำหรับประมวลผล raw_scans -> attendance_days ให้เรียกใช้
-      if (minDate && maxDate){
-        try { await client.rpc('process_raw_scans', { p_from: minDate, p_to: maxDate }); } catch(e){ console.info('rpc process_raw_scans skipped', e?.message || e); }
-      }
-
-      // สร้าง attendance_days แบบพื้นฐาน (กรณีไม่ได้มี RPC)
-      if (optBuild?.checked){
-        const cutoff = (lateCutoff?.value || '08:15');
-        // หา first-in จากที่เราเพิ่งใส่
-        const mp = new Map(); // key = date|code -> first-in
-        scanRows.forEach(s => {
-          if (s.direction !== 'IN') return;
-          const d = s.event_time.slice(0,10);
-          const key = d + '|' + s.employee_code;
-          const t = s.event_time.slice(11,16);
-          if (!mp.has(key) || t < mp.get(key)) mp.set(key, t);
-        });
-        const dayRows = Array.from(mp.keys()).map(k => {
-          const [dateISO, code] = k.split('|');
-          const status = (mp.get(k) > cutoff) ? 'late' : 'present';
-          const info = parsed.find(r => r.employee_code===code && r.dateISO===dateISO) || {};
-          return {
-            work_date: dateISO,
-            employee_code: code,
-            department: info.department || null,
-            status
-          };
-        });
-        if (dayRows.length){
-          await chunkInsert('attendance_days', dayRows);
-        }
-      }
-
-      toastOK('อัปโหลดเรียบร้อย');
-    } catch(err){
-      console.error('uploadToSupabase', err);
-      toastNG('อัปโหลดล้มเหลว: ' + (err?.message || err));
-    } finally {
-      uploadBtn.disabled = false;
-    }
-  }
-
-  bindDrag();
-  uploadBtn?.addEventListener('click', uploadToSupabase);
-})();
-
   </script>
 </body>
 </html>
