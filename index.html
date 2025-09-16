@@ -414,33 +414,48 @@
 
     // ===== Helpers for ABSENT by "no check-in" =====
     async function fetchActiveEmployees(dateFor){
-      try {
-        const { data, error } = await client.from('employees')
-          .select('employee_code,department,full_name,is_active');
-        if (error) throw error;
-        const arr = (data||[]).filter(e => e.is_active !== false);
-        if (arr.length > 0) return { list: arr, source: 'employees' };
-      } catch(e) {
-        console.info('[absent] employees table not accessible, fallback to attendance_days window.');
+  // Return { list: [{employee_code,department,full_name,is_active}], source }
+  // Try employees table first (select * to avoid 400 when column names differ)
+  try {
+    const { data, error } = await client.from('employees')
+      .select('*')
+      .limit(10000);
+    if (error) throw error;
+    const list = (data||[]).map(e => ({
+      employee_code: e.employee_code || e.code || e.person_id || e.emp_id || e.empcode || e.emp_code || e.person_code || null,
+      department: e.department || e.dept || e.division || '',
+      full_name: e.full_name || e.name || e.emp_name || '',
+      is_active: (typeof e.is_active === 'boolean') ? e.is_active 
+                : (typeof e.active === 'boolean') ? e.active 
+                : (e.status ? String(e.status).toLowerCase() !== 'inactive' : true)
+    })).filter(r => r.employee_code).filter(r => r.is_active !== false);
+    if (list.length > 0) return { list, source: 'employees' };
+  } catch(e){
+    console.info('[absent] employees table not accessible:', e?.message || e);
+  }
+  // Fallback: derive the active list from attendance_days over the last 60 days
+  const endDate = (dateFor || new Date().toISOString().slice(0,10));
+  const startDate = new Date(Date.parse(endDate) - 59*86400000).toISOString().slice(0,10);
+  try {
+    const { data, error } = await client.from('attendance_days')
+      .select('employee_code,department')
+      .gte('work_date', startDate)
+      .lte('work_date', endDate)
+      .limit(100000);
+    if (error) throw error;
+    const mp = new Map();
+    (data||[]).forEach(r => {
+      if (!r.employee_code) return;
+      if (!mp.has(r.employee_code)){
+        mp.set(r.employee_code, { employee_code: r.employee_code, department: r.department || '', full_name: '', is_active: true });
       }
-      const end = dateFor || new Date().toISOString().slice(0,10);
-      const start = new Date(Date.parse(end) - 59*86400000).toISOString().slice(0,10);
-      try {
-        const { data, error } = await client.from('attendance_days')
-          .select('employee_code,department')
-          .gte('work_date', start)
-          .lte('work_date', end)
-          .limit(100000);
-        if (error) throw error;
-        const mp = new Map();
-        (data||[]).forEach(r => {
-          if (!mp.has(r.employee_code)) mp.set(r.employee_code, { employee_code: r.employee_code, department: r.department || '', full_name: '', is_active: true });
-        });
-        return { list: Array.from(mp.values()), source: 'attendance_days' };
-      } catch(e) {
-        return { list: [], source: 'none' };
-      }
-    }
+    });
+    return { list: Array.from(mp.values()), source: 'attendance_days' };
+  } catch(e){
+    console.warn('[absent] fallback also failed:', e?.message || e);
+    return { list: [], source: 'none' };
+  }
+}
 
     async function fetchDayRows(dateISO){
       const { data, error } = await client.from('attendance_days')
@@ -498,12 +513,43 @@
         const latestDay = latestRows?.[0] ? new Date(latestRows[0].event_time).toISOString().slice(0,10)
                                           : new Date().toISOString().slice(0,10);
 
-        await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay });
+        try { await client.rpc('process_raw_scans', { p_from: latestDay, p_to: latestDay }); } catch(e){ console.info('rpc process_raw_scans skipped', e?.message || e); }
 
         const { list: activeEmps, source: empSource } = await fetchActiveEmployees(latestDay);
         const totalEmp = activeEmps.length;
 
-        const dayRows = await fetchDayRows(latestDay);
+        let dayRows = await fetchDayRows(latestDay);
+        if (!dayRows || dayRows.length === 0) {
+          // Fallback: build from raw_scans first-in
+          const tzMin = -new Date().getTimezoneOffset();
+          const tzSign = tzMin>=0?'+':'-';
+          const tzh = String(Math.floor(Math.abs(tzMin)/60)).padStart(2,'0');
+          const tzm = String(Math.abs(tzMin)%60).padStart(2,'0');
+          const tzOffset = `${tzSign}${tzh}:${tzm}`;
+          const startISO = latestDay + 'T00:00:00' + tzOffset;
+          const nextDay = new Date(Date.parse(latestDay) + 86400000).toISOString().slice(0,10);
+          const endISO = nextDay + 'T00:00:00' + tzOffset;
+          const { data: scans, error: e1 } = await client.from('raw_scans')
+            .select('employee_code,department,event_time,direction')
+            .gte('event_time', startISO).lt('event_time', endISO)
+            .limit(100000);
+          if (!e1) {
+            const mp = new Map();
+            (scans||[]).forEach(s => {
+              if (s.direction !== 'IN') return;
+              const code = s.employee_code;
+              const t = s.event_time.slice(11,16);
+              if (!mp.has(code) || t < mp.get(code)) mp.set(code,t);
+            });
+            const cutoff = (document.getElementById('lateCutoff')?.value || '08:15');
+            dayRows = Array.from(mp.keys()).map(code => {
+              const dep = (scans||[]).find(x => x.employee_code===code)?.department || '';
+              const status = (mp.get(code) > cutoff) ? 'late' : 'present';
+              return { work_date: latestDay, employee_code: code, department: dep, status };
+            });
+          }
+        }
+    
         const countsRaw = { present:0, late:0, absent:0, missing_out:0 };
         (dayRows || []).forEach(r => countsRaw[(r.status||'').toLowerCase()] = (countsRaw[(r.status||'').toLowerCase()] || 0) + 1);
 
@@ -1267,6 +1313,11 @@
     uploadBtn.disabled = true;
     try {
       const scanRows = [];
+            const tzMin = -new Date().getTimezoneOffset();
+            const tzSign = tzMin>=0?'+':'-';
+            const tzh = String(Math.floor(Math.abs(tzMin)/60)).padStart(2,'0');
+            const tzm = String(Math.abs(tzMin)%60).padStart(2,'0');
+            const tzOffset = `${tzSign}${tzh}:${tzm}`;
       let minDate = null, maxDate = null;
 
       parsed.forEach(r => {
@@ -1278,7 +1329,7 @@
         };
         function push(direction, time){
           if (!time) return;
-          const iso = r.dateISO + 'T' + time + ':00Z';
+          const iso = r.dateISO + 'T' + time + ':00' + tzOffset;
           const d = r.dateISO;
           minDate = !minDate || d < minDate ? d : minDate;
           maxDate = !maxDate || d > maxDate ? d : maxDate;
