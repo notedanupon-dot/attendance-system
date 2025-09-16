@@ -111,7 +111,7 @@
 
         <!-- Absent -->
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover cursor-pointer" id="kpi-card-absent">
-          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_absent">ขาดงาน</p>
+          <p class="text-sm font-medium text-gray-600" data-i18n="kpi_absent">ไม่มาทำงาน</p>
           <div class="flex items-end justify-between mt-2">
             <p class="text-3xl font-bold text-red-600"><span id="stat-absent">—</span></p>
             <div class="bg-red-100 p-3 rounded-full"><i class="fas fa-user-times text-red-600 text-xl"></i></div>
@@ -142,7 +142,7 @@
                 <th class="text-left px-3 py-2 text-gray-600 font-medium"><span data-i18n="table_dept">แผนก</span></th>
                 <th class="text-right px-3 py-2 text-emerald-700 font-medium"><span data-i18n="table_present">มาทำงาน</span></th>
                 <th class="text-right px-3 py-2 text-amber-700 font-medium"><span data-i18n="table_late">มาสาย</span></th>
-                <th class="text-right px-3 py-2 text-rose-700 font-medium"><span data-i18n="table_absent">ขาดงาน</span></th>
+                <th class="text-right px-3 py-2 text-rose-700 font-medium"><span data-i18n="table_absent">ไม่มาทำงาน</span></th>
                 <th class="text-right px-3 py-2 text-gray-700 font-semibold"><span data-i18n="table_total">รวม</span></th>
               </tr>
             </thead>
@@ -178,7 +178,7 @@
         </div>
     
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-semibold text-gray-900" data-i18n="absent_list_title">รายชื่อขาดงาน (ไม่มี Check-in)</h3>
+          <h3 class="text-lg font-semibold text-gray-900" data-i18n="absent_list_title">รายชื่อไม่มาทำงาน (ไม่มี Check-in)</h3>
           <div class="text-sm text-gray-600">
             <span data-i18n="date_label">วันที่:</span> <span id="absentDate">—</span> • <span data-i18n="total_label">รวม</span> <span id="absentCount">0</span> <span data-i18n="people">คน</span>
           </div>
@@ -235,7 +235,7 @@
               <option value="">ทั้งหมด</option>
               <option value="present">ปกติ</option>
               <option value="late">มาสาย</option>
-              <option value="absent">ขาด</option>
+              <option value="absent">ไม่มาทำงาน</option>
             </select>
           </div>
         </div>
@@ -856,7 +856,7 @@
             <td class="px-3 py-2">${
               (r.status||'') === "late" ? '<span class="chip chip-amber">มาสาย</span>' :
               (r.status||'') === "present" || (r.status||'') === "missing_out" ? '<span class="chip chip-green">ปกติ</span>' :
-              (r.status||'') === "absent" ? '<span class="chip chip-rose">ขาด</span>' : '-'
+              (r.status||'') === "absent" ? '<span class="chip chip-rose">ไม่มาทำงาน</span>' : '-'
             }</td>
           </tr>
         `).join("");
@@ -920,7 +920,7 @@
         people: "คน",
         scanned: "มีสแกน:",
         kpi_late: "มาสาย",
-        kpi_absent: "ขาดงาน",
+        kpi_absent: "ไม่มาทำงาน",
         kpi_pending: "คำขอรออนุมัติ",
         pending_note: "แก้ไขเวลา + คำขอลา (pending)",
         import_title: "นำเข้าข้อมูลจาก iVMS4200-AC",
@@ -943,10 +943,10 @@
         table_dept: "แผนก",
         table_present: "มาทำงาน",
         table_late: "มาสาย",
-        table_absent: "ขาดงาน",
+        table_absent: "ไม่มาทำงาน",
         table_total: "รวม",
         grand_total: "รวมทั้งหมด",
-        absent_list_title: "รายชื่อขาดงาน (ไม่มี Check-in)",
+        absent_list_title: "รายชื่อไม่มาทำงาน (ไม่มี Check-in)",
         search_name: "ค้นหาชื่อ/รหัสพนักงาน",
         total_label: "รวม",
         hide_table: "ซ่อนตาราง"
@@ -968,7 +968,7 @@
         people: "people",
         scanned: "Scanned:",
         kpi_late: "Late",
-        kpi_absent: "Absent",
+        kpi_absent: "No attendance",
         kpi_pending: "Pending requests",
         pending_note: "Time corrections + leave (pending)",
         import_title: "Import from iVMS4200-AC",
@@ -991,10 +991,10 @@
         table_dept: "Department",
         table_present: "Present",
         table_late: "Late",
-        table_absent: "Absent",
+        table_absent: "No attendance",
         table_total: "Total",
         grand_total: "Grand total",
-        absent_list_title: "Absent list (no check-in)",
+        absent_list_title: "No attendance list (no check-in)",
         search_name: "Search name / code",
         total_label: "Total",
         hide_table: "Hide table"
