@@ -609,7 +609,6 @@
             const nm = (s?.full_name ?? '').toString().trim();
             if (nm) mp.set(s.employee_code, nm);
           });
-        mp.forEach((o, code) => { if (!o.first_in) o.first_in = (typeof firstIn.get==='function'? firstIn.get(code): null) || o.first_in || null; if (!o.last_out) o.last_out = (typeof lastOut.get==='function'? lastOut.get(code): null) || o.last_out || null; });
         }
         return mp;
       } catch(e) {
@@ -736,7 +735,9 @@
       tb.innerHTML = on ? '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">กำลังโหลดข้อมูล...</td></tr>' : "";
     }
     function attToDayRangeISO(dateISO){
-      const s = new Date(dateISO + 'T00:00:00'); const tzMin = -s.getTimezoneOffset(); const sign = tzMin>=0?'+':'-'; const h = String(Math.floor(Math.abs(tzMin)/60)).padStart(2,'0'); const m = String(Math.abs(tzMin)%60).padStart(2,'0'); const off = `${sign}${h}:${m}`; const from = dateISO + 'T00:00:00' + off; const to = new Date(s.getTime()+86400000).toISOString().slice(0,10) + 'T00:00:00' + off; return { from, to };
+      const s = new Date(dateISO + "T00:00:00");
+      const e = new Date(s.getTime() + 86400000);
+      return { from: s.toISOString(), to: e.toISOString() };
     }
     async function attLoadDepartments(){
       try {
@@ -766,55 +767,23 @@
           .select("employee_code, department, status")
           .eq("work_date", dateISO)
           .limit(200000);
-        // prepare maps for first_in/last_out (will fill after fetching scans)
-        const firstIn = new Map();
-        const lastOut = new Map();
+        const statusMap = new Map();
+        (days||[]).forEach(r => statusMap.set(r.employee_code, (r.status||"").toLowerCase()));
 
-        // raw scans during the day - fetch first to compute INS/OUTS
+        // raw scans during the day
         const { data: scans } = await client.from("raw_scans")
           .select("employee_code, full_name, department, direction, event_time")
           .gte("event_time", from).lt("event_time", to)
           .in("direction", ["IN","OUT"])
           .limit(200000);
-
-        // compute first_in/last_out map from scans
-        (scans||[]).forEach(s => {
-          if (!s || !s.employee_code) return;
-          const code = s.employee_code;
-          if (s.direction === 'IN') {
-            const t = s.event_time;
-            if (!firstIn.has(code) || t < firstIn.get(code)) firstIn.set(code, t);
-          } else if (s.direction === 'OUT') {
-            const t = s.event_time;
-            if (!lastOut.has(code) || t > lastOut.get(code)) lastOut.set(code, t);
-          }
-        });
-
-        // Build computed day rows from raw_scans if attendance_days is missing
-        const cutoff = (document.getElementById('lateCutoff')?.value || '08:15');
-        const computed = Array.from(firstIn.keys()).map(code => {
-          const t = firstIn.get(code).slice(11,16);
-          const status = (t > cutoff) ? 'late' : 'present';
-          return { employee_code: code, status, department: (scans||[]).find(x => x.employee_code===code)?.department || '' };
-        });
-
-        // merge DB days with computed (use DB first)
-        const dayByCode = new Map();
-        (days||[]).forEach(r => dayByCode.set(r.employee_code, r));
-        (computed||[]).forEach(r => { if (!dayByCode.has(r.employee_code)) dayByCode.set(r.employee_code, r); });
-        const mergedDays = Array.from(dayByCode.values());
-
-        // rebuild statusMap from merged (declare once)
-        const statusMap = new Map();
-        (mergedDays||[]).forEach(r => statusMap.set(r.employee_code, (r.status||'').toLowerCase()));
-
-        // build mp of combined rows using scans and computed data
         const mp = new Map();
         (scans||[]).forEach(s => {
           const key = s.employee_code;
           const o = mp.get(key) || { employee_code: key, full_name: s.full_name, department: s.department, first_in: null, last_out: null, status: statusMap.get(key) || "" };
-          if (s.direction === "IN") { o.first_in = firstIn.get(key) || o.first_in || null;
-          } else if (s.direction === "OUT") { o.last_out = lastOut.get(key) || o.last_out || null;
+          if (s.direction === "IN") {
+            if (!o.first_in || s.event_time < o.first_in) o.first_in = s.event_time;
+          } else if (s.direction === "OUT") {
+            if (!o.last_out || s.event_time > o.last_out) o.last_out = s.event_time;
           }
           if (!o.full_name && s.full_name) o.full_name = s.full_name;
           if (!o.department && s.department) o.department = s.department;
@@ -823,7 +792,7 @@
 
         // include ABSENT rows
         const { list: activeEmps } = await fetchActiveEmployees(dateISO);
-        const { absentRows } = buildAbsentList(activeEmps, mergedDays || []);
+        const { absentRows } = buildAbsentList(activeEmps, days || []);
         const codes = (absentRows||[]).map(r=>r.employee_code).filter(Boolean);
         const nameMap = await _buildNameMap(codes);
         (absentRows||[]).forEach(a => {
@@ -1114,6 +1083,172 @@
       }
       applyI18n(localStorage.getItem('lang') || 'th');
     });
+  </script>
+
+
+  
+  <script>
+  function __att_toast(msg, ok){ try{ toast(msg, !!ok); }catch(e){ console[ok?'log':'warn'](msg); } }
+  function initImport(){
+    var area = document.getElementById('uploadArea');
+    var fileInput = document.getElementById('fileInput');
+    var chooseBtn = document.getElementById('chooseFileBtn');
+    var previewBox = document.getElementById('filePreview');
+    var previewBody = document.getElementById('previewTableBody');
+    var uploadBtn = document.getElementById('btnImportUpload');
+    var optBuild = document.getElementById('optBuildAttendance');
+    var lateCutoff = document.getElementById('lateCutoff');
+    if (!area || !fileInput) return; // initialize only on Import page
+
+    var parsed = [];
+
+    function showPreview(rows){
+      if (previewBody){
+        previewBody.innerHTML = rows.slice(0,50).map(function(r){
+          var time = (r.checkIn||'-') + ' / ' + (r.checkOut||'-');
+          return '<tr>'
+            + '<td class="px-6 py-2 text-sm">'+ time +'</td>'
+            + '<td class="px-6 py-2 text-sm">'+ (r.employee_code||'-') +'</td>'
+            + '<td class="px-6 py-2 text-sm">'+ (r.full_name||'-') +'</td>'
+            + '<td class="px-6 py-2 text-sm">'+ (r.department||'-') +'</td>'
+            + '<td class="px-6 py-2 text-sm">'+ (r.type||'-') +'</td>'
+            + '<td class="px-6 py-2 text-sm">'+ (r.device||'-') +'</td>'
+          + '</tr>';
+        }).join('');
+      }
+      if (previewBox) previewBox.classList.remove('hidden');
+      if (uploadBtn) uploadBtn.disabled = rows.length === 0;
+    }
+
+    function normalizeHeaders(h){
+      var map = {};
+      h.forEach(function(raw, idx){
+        var k = (raw||'').toString().trim().toLowerCase();
+        if(!k) return;
+        if (/^person(\s*|\_)?(id|no|code|number)/.test(k) || /(employee|emp).*?(id|code|no)/.test(k)) map[idx]='employee_code';
+        else if (/^name$/.test(k) || /(full).*name/.test(k) || /ชื่อ$/.test(k)) map[idx]='full_name';
+        else if (/^dept|department$/.test(k) || /แผนก$/.test(k)) map[idx]='department';
+        else if (/(^date$|work.*date|วันที่)/.test(k)) map[idx]='dateISO';
+        else if (/(check.?in|time.?in|in\s*time|first\s*in)/.test(k)) map[idx]='checkIn';
+        else if (/(check.?out|time.?out|out\s*time|last\s*out)/.test(k)) map[idx]='checkOut';
+        else if (/(device|reader|terminal|ap)/.test(k)) map[idx]='device';
+        else if (/(type|event)/.test(k)) map[idx]='type';
+      });
+      return map;
+    }
+    function toDateISO(v){
+      if(!v) return null;
+      if (v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+      var s = String(v).trim();
+      var m1 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})$/);
+      if(m1){ var d=m1[1], mo=m1[2], y=m1[3]; if(y.length===2) y=(Number(y)>=70?'19':'20')+y; var dt=new Date(+y,+mo-1,+d); if(!isNaN(dt)) return dt.toISOString().slice(0,10); }
+      var m2 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if(m2){ var yy=m2[1], mm=m2[2], dd=m2[3]; var dt2=new Date(+yy,+mm-1,+dd); if(!isNaN(dt2)) return dt2.toISOString().slice(0,10); }
+      if(/^\d{4,6}$/.test(s)){ var epoch=new Date(Date.UTC(1899,11,30)); var dt3=new Date(epoch.getTime() + (Number(s)||0)*86400000); return dt3.toISOString().slice(0,10); }
+      var d4=new Date(s); return isNaN(d4)?null:d4.toISOString().slice(0,10);
+    }
+    function normTime(v){
+      if(!v) return null; var s=String(v).trim();
+      if(/^\d{3,4}$/.test(s)){ s=s.padStart(4,'0'); return s.slice(0,2)+':'+s.slice(2,4); }
+      var m=s.match(/^(\d{1,2}):(\d{2})/); if(m){ return m[1].padStart(2,'0')+':'+m[2]; }
+      return null;
+    }
+    function parseCSVText(text){
+      var rows=[];
+      var reCsv = /(?!\s*$)\s*(?:'([^'\\]*(?:\\.[^'\\]*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+      var lines=text.replace(/\r\n?/g,'\n').split('\n');
+      var headers=null;
+      lines.forEach(function(line){
+        if(!line.trim()) return;
+        var out=[], m;
+        reCsv.lastIndex=0;
+        while(m=reCsv.exec(line)){ out.push(m[1]||m[2]||m[3]||''); }
+        if(!headers){ headers=out; } else { rows.push(out); }
+      });
+      return { headers: headers||[], rows: rows };
+    }
+    function commit(headers, records){
+      var headerMap = normalizeHeaders(headers);
+      var out = [];
+      records.forEach(function(rec){
+        var cells = Array.isArray(rec) ? rec : headers.map(function(h){ return rec[h]; });
+        var obj={}; cells.forEach(function(val,i){ var key=headerMap[i]; if(!key) return; obj[key]=val; });
+        var r={ employee_code: String(obj.employee_code||'').trim(),
+                full_name: String(obj.full_name||'').trim(),
+                department: String(obj.department||'').trim(),
+                dateISO: toDateISO(obj.dateISO),
+                checkIn: normTime(obj.checkIn),
+                checkOut: normTime(obj.checkOut),
+                device: String(obj.device||'').trim(),
+                type: String(obj.type||'').trim() };
+        if (r.employee_code && r.dateISO) out.push(r);
+      });
+      parsed = out; showPreview(out); __att_toast('โหลดข้อมูล '+out.length+' แถว', true);
+    }
+    async function parseFile(file){
+      var ext = (file.name.split('.').pop()||'').toLowerCase();
+      if(ext === 'csv'){
+        var text = await file.text();
+        var pr = parseCSVText(text);
+        commit(pr.headers, pr.rows);
+      } else if (typeof XLSX !== 'undefined'){
+        var data = await file.arrayBuffer();
+        var wb = XLSX.read(new Uint8Array(data), { type:'array' });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var json = XLSX.utils.sheet_to_json(ws, { header:1, raw:true });
+        var headers = (json[0]||[]).map(function(x){ return String(x||''); });
+        var body = json.slice(1).filter(function(r){ return (r||[]).some(function(x){ return String(x||'').trim(); }); });
+        commit(headers, body);
+      } else {
+        __att_toast('ไม่รองรับไฟล์แบบนี้ในขณะนี้ (ต้องการ XLSX library)', false);
+      }
+    }
+    function bind(){
+      area.addEventListener('dragover', function(e){ e.preventDefault(); area.classList.add('border-blue-400'); });
+      area.addEventListener('dragleave', function(){ area.classList.remove('border-blue-400'); });
+      area.addEventListener('drop', function(e){ e.preventDefault(); area.classList.remove('border-blue-400'); var f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) parseFile(f); });
+      area.addEventListener('click', function(){ fileInput.click(); });
+      chooseBtn && chooseBtn.addEventListener('click', function(){ fileInput.click(); });
+      fileInput.addEventListener('change', function(){ var f=fileInput.files&&fileInput.files[0]; if(f) parseFile(f); });
+      if (uploadBtn){ uploadBtn.addEventListener('click', uploadToSupabase); }
+    }
+
+    async function uploadToSupabase(){
+      if(!parsed.length){ __att_toast('ไม่มีข้อมูลสำหรับอัปโหลด', false); return; }
+      if (!window.supabase || !window.supabase.createClient){ __att_toast('ไม่พบการเชื่อมต่อฐานข้อมูล', false); return; }
+      var client = window.client || window.supabaseClient || (function(){ return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); })();
+      if (!client){ __att_toast('ไม่พบ client สำหรับเชื่อมต่อฐานข้อมูล', false); return; }
+      if (uploadBtn) uploadBtn.disabled = true;
+      try{
+        var tzMin=-new Date().getTimezoneOffset();
+        var tzSign=tzMin>=0?'+':'-';
+        var tzh=(''+Math.floor(Math.abs(tzMin)/60)).padStart(2,'0');
+        var tzm=(''+(Math.abs(tzMin)%60)).padStart(2,'0');
+        var tzOffset=tzSign+tzh+':'+tzm;
+        var rows=[];
+        parsed.forEach(function(r){
+          var base={ employee_code:r.employee_code, full_name:r.full_name||null, department:r.department||null };
+          if (r.checkIn){ rows.push(Object.assign({}, base, { direction:'IN', event_time: r.dateISO+'T'+r.checkIn+':00'+tzOffset })); }
+          if (r.checkOut && r.checkOut !== '-' ){ rows.push(Object.assign({}, base, { direction:'OUT', event_time: r.dateISO+'T'+r.checkOut+':00'+tzOffset })); }
+        });
+        // chunk insert
+        for (var i=0;i<rows.length;i+=500){
+          var batch = rows.slice(i,i+500);
+          var ins = await client.from('raw_scans').insert(batch);
+          if (ins.error) throw ins.error;
+        }
+        __att_toast('อัปโหลดเรียบร้อย ('+rows.length+' records)', true);
+      }catch(e){
+        console.error('uploadToSupabase', e);
+        __att_toast('อัปโหลดล้มเหลว: '+(e.message||e), false);
+      }finally{
+        if (uploadBtn) uploadBtn.disabled = false;
+      }
+    }
+
+    bind();
+  }
+  document.addEventListener('DOMContentLoaded', initImport);
   </script>
 </body>
 </html>
